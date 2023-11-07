@@ -12,6 +12,36 @@
     </script>
   </head>
   <body class="bg-white antialiased">
+    <div class="w-full">
+      <nav class="bg-gray-800 px-8 h-20 flex justify-between">
+        <ul class="flex gap-8">
+          <li class="flex items-center">
+            <.link navigate={~p"/"} class="text-white font-mono text-xl">Home</.link>
+          </li>
+        </ul>
+
+        <ul class="flex gap-8">
+          <li class="flex items-center gap-2">
+            <%= if @conn.assigns[:current_user] do %>
+              <.link navigate={~p"/auth/signout"} class="text-white font-mono text-xl">
+                Signout
+              </.link>
+              <.link
+                href={"https://github.com/#{@conn.assigns[:current_user].username}"}
+                target="_blank"
+                class="text-white font-mono text-xl"
+              >
+                <.user_avatar user={@conn.assigns[:current_user]} size="xl" />
+              </.link>
+            <% else %>
+              <.link navigate={~p"/auth/signin/github"} class="text-white font-mono text-xl">
+                Signin
+              </.link>
+            <% end %>
+          </li>
+        </ul>
+      </nav>
+    </div>
     <%= @inner_content %>
   </body>
 </html>

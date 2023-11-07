@@ -12,6 +12,7 @@ defmodule Pokerplan.Application do
       PokerplanWeb.Telemetry,
       # Start the PubSub system
       {Phoenix.PubSub, name: Pokerplan.PubSub},
+      PokerplanWeb.Presence,
       # Start the Endpoint (http/https)
       PokerplanWeb.Endpoint
       # Start a worker by calling: Pokerplan.Worker.start_link(arg)

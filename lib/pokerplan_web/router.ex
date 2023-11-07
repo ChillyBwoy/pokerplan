@@ -1,6 +1,8 @@
 defmodule PokerplanWeb.Router do
   use PokerplanWeb, :router
 
+  import PokerplanWeb.UserAuth
+
   pipeline :browser do
     plug :accepts, ["html"]
     plug :fetch_session
@@ -8,6 +10,7 @@ defmodule PokerplanWeb.Router do
     plug :put_root_layout, html: {PokerplanWeb.Layouts, :root}
     plug :protect_from_forgery
     plug :put_secure_browser_headers
+    plug :fetch_current_user
   end
 
   pipeline :api do
@@ -18,6 +21,23 @@ defmodule PokerplanWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :home
+  end
+
+  scope "/rooms", PokerplanWeb do
+    pipe_through [:browser, :require_authenticated_user]
+
+    live_session :require_authenticated_user,
+      on_mount: [{PokerplanWeb.UserAuth, :ensure_authenticated}] do
+      live "/:id", RoomLive
+    end
+  end
+
+  scope "/auth", PokerplanWeb do
+    pipe_through :browser
+
+    get "/signout", AuthController, :signout
+    get "/signin/:provider", AuthController, :request
+    get "/signin/:provider/callback", AuthController, :callback
   end
 
   # Other scopes may use custom stacks.

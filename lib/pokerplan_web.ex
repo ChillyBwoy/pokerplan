@@ -85,6 +85,7 @@ defmodule PokerplanWeb do
       import Phoenix.HTML
       # Core UI components and translation
       import PokerplanWeb.CoreComponents
+      import PokerplanWeb.UserComponents
       import PokerplanWeb.Gettext
 
       # Shortcut for generating JS commands
