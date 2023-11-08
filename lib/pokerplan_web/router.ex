@@ -28,7 +28,7 @@ defmodule PokerplanWeb.Router do
 
     live_session :require_authenticated_user,
       on_mount: [{PokerplanWeb.UserAuth, :ensure_authenticated}] do
-      live "/:id", RoomLive
+      live "/:room_id", RoomLive
     end
   end
 

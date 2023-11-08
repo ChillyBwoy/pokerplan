@@ -1,1 +1,11 @@
-<h1>room</h1>
+<div class="flex flex-col gap-6">
+  <h1 class="text-4xl">Room <%= @room_id %></h1>
+
+  <ul class="flex flex-col gap-3">
+    <li :for={{username, user} <- @users}>
+      <.user_avatar user={user} size="m">
+        <%= username %>
+      </.user_avatar>
+    </li>
+  </ul>
+</div>

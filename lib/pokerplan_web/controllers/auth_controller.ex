@@ -10,13 +10,13 @@ defmodule PokerplanWeb.AuthController do
     {:ok, %User{username: nickname, avatar_url: image}}
   end
 
-  def callback(%{assigns: %{ueberauth_failure: _}} = conn, _params) do
+  def callback(conn = %{assigns: %{ueberauth_failure: _}}, _params) do
     conn
     |> put_flash(:error, "Failed to authenticate.")
     |> redirect(to: "/")
   end
 
-  def callback(%{assigns: %{ueberauth_auth: auth}} = conn, _params) do
+  def callback(conn = %{assigns: %{ueberauth_auth: auth}}, _params) do
     with {:ok, user} <- user_attrs_from_oauth(auth) do
       conn
       |> put_session(:user_token, Token.sign(user))

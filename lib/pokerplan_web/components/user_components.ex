@@ -4,6 +4,7 @@ defmodule PokerplanWeb.UserComponents do
 
   attr :user, User, required: true
   attr :size, :string, values: ["xl", "m", "s"], default: "m"
+  slot :inner_block
 
   def user_avatar(assigns) do
     icon_size =
@@ -25,6 +26,9 @@ defmodule PokerplanWeb.UserComponents do
         height={@image_size}
         class="inline rounded-full border border-2 border-blue-500"
       />
+      <span :if={@inner_block != []} class="">
+        <%= render_slot(@inner_block) %>
+      </span>
     </span>
     """
   end
