@@ -1,33 +1,55 @@
 defmodule Pokerplan.RoomState do
   use GenServer
   alias Phoenix.PubSub
-  @name :count_server
-
-  @start_value 0
 
   # External API (runs in client process)
 
-  def topic do
-    "count"
+  def get_topic(room_id) do
+    "pubsub_poker_room_#{room_id}"
   end
 
-  def start_link(_opts) do
-    GenServer.start_link(__MODULE__, @start_value, name: @name)
+  def get_name(room_id) do
+    String.to_atom("poker_room_#{room_id}")
   end
 
-  def incr() do
-    GenServer.call(@name, :incr)
+  defp notify(state = %{room_id: room_id, data: _data}) do
+    PubSub.broadcast(Pokerplan.PubSub, get_topic(room_id), {:room_state, state})
+    {:reply, state, state}
   end
 
-  def decr() do
-    GenServer.call(@name, :decr)
+  # def start_link(_opts) do
+  #   GenServer.start_link(__MODULE__, @start_value, name: @name)
+  # end
+
+  def start(initial_state = %{room_id: room_id, data: _data}) do
+    name = get_name(room_id)
+
+    GenServer.start_link(__MODULE__, initial_state, name: name)
   end
 
-  def current() do
-    GenServer.call(@name, :current)
+  def stop(room_id) do
+    GenServer.stop(get_name(room_id))
   end
 
-  def init(initial_state) do
+  def incr(room_id) do
+    GenServer.call(get_name(room_id), :incr)
+  end
+
+  def decr(room_id) do
+    GenServer.call(get_name(room_id), :decr)
+  end
+
+  def current(room_id) do
+    name = get_name(room_id)
+    GenServer.call(name, :current)
+  end
+
+  def init(
+        initial_state = %{
+          room_id: _room_id,
+          data: %{title: _title, count: _count}
+        }
+      ) do
     {:ok, initial_state}
   end
 
@@ -38,16 +60,14 @@ defmodule Pokerplan.RoomState do
   end
 
   def handle_call(:incr, _from, state) do
-    make_change(state, +1)
+    count = get_in(state, [:data, :count])
+    next_state = put_in(state, [:data, :count], count + 1)
+    notify(next_state)
   end
 
   def handle_call(:decr, _from, state) do
-    make_change(state, -1)
-  end
-
-  defp make_change(state, change) do
-    new_state = state + change
-    PubSub.broadcast(Pokerplan.PubSub, topic(), {:count, new_state})
-    {:reply, new_state, new_state}
+    count = get_in(state, [:data, :count])
+    next_state = put_in(state, [:data, :count], count - 1)
+    notify(next_state)
   end
 end

@@ -1,5 +1,5 @@
 <div class="flex flex-col gap-6">
-  <h1 class="text-4xl">Room <%= @room_id %></h1>
+  <h1 class="text-4xl">Room <%= @room_state["room_id"] %></h1>
 
   <ul class="flex flex-col gap-3">
     <li :for={{username, user} <- @users}>
@@ -11,7 +11,7 @@
 
   <div class="flex gap-4 justify-center items-center">
     <button class="bg-slate-500 w-12 h-12" phx-click="dec">-</button>
-    <div class="text-lg"><%= @counter %></div>
+    <div class="text-lg"><%= @room_state["data"]["count"] %></div>
     <button class="bg-slate-500 w-12 h-12" phx-click="inc">+</button>
   </div>
 </div>
