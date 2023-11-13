@@ -16,9 +16,7 @@ defmodule PokerplanWeb.RoomCreateLive do
   def handle_event("save", %{"title" => title}, socket) do
     room_id = UUID.uuid4(:hex)
 
-    initial_state = %{room_id: room_id, data: %{title: title, count: 42}}
-
-    case RoomState.start(initial_state) do
+    case RoomState.start(%{room_id: room_id, title: title}) do
       {:ok, _pid} ->
         {:noreply, socket |> redirect(to: "/rooms/#{room_id}")}
 

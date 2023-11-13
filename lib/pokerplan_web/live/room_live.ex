@@ -6,9 +6,11 @@ defmodule PokerplanWeb.RoomLive do
   alias Pokerplan.Auth.User
   alias PokerplanWeb.Presence
 
+  @sequence [1, 2, 3, 5, 8, 13, 21, 34, "?", "☕️"]
+
   @impl true
   def mount(_params, _session, socket) do
-    {:ok, socket}
+    {:ok, socket |> assign(:sequence, @sequence)}
   end
 
   @impl true
@@ -51,14 +53,28 @@ defmodule PokerplanWeb.RoomLive do
   end
 
   @impl true
-  def handle_event("inc", _, socket = %{assigns: %{room_state: %{room_id: room_id}}}) do
-    {:noreply, assign(socket, :room_state, RoomState.incr(room_id))}
+  def handle_event(
+        "vote",
+        %{"value" => value},
+        socket = %{
+          assigns: %{
+            current_user: %{username: username},
+            room_state: %{room_id: room_id}
+          }
+        }
+      ) do
+    {:noreply, assign(socket, :room_state, RoomState.user_vote(room_id, username, value))}
   end
 
-  @impl true
-  def handle_event("dec", _, socket = %{assigns: %{room_state: %{room_id: room_id}}}) do
-    {:noreply, assign(socket, :counter, RoomState.decr(room_id))}
-  end
+  # @impl true
+  # def handle_event("inc", _, socket = %{assigns: %{room_state: %{room_id: room_id}}}) do
+  #   {:noreply, assign(socket, :room_state, RoomState.incr(room_id))}
+  # end
+
+  # @impl true
+  # def handle_event("dec", _, socket = %{assigns: %{room_state: %{room_id: room_id}}}) do
+  #   {:noreply, assign(socket, :counter, RoomState.decr(room_id))}
+  # end
 
   @impl true
   def terminate(
@@ -66,7 +82,7 @@ defmodule PokerplanWeb.RoomLive do
         socket = %{
           assigns: %{
             current_user: user = %User{},
-            room_state: %{room_id: room_id, data: _data}
+            room_state: %{room_id: room_id, title: _title, users: _users}
           }
         }
       ) do
