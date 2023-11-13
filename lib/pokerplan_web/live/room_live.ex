@@ -19,10 +19,9 @@ defmodule PokerplanWeb.RoomLive do
       ) do
     if connected?(socket) do
       Presence.track_user(%{room_id: room_id}, user)
-      Phoenix.PubSub.subscribe(Pokerplan.PubSub, "presence:room:#{room_id}")
+      PubSub.subscribe(Pokerplan.PubSub, Presence.get_topic(%{room_id: room_id}))
+      PubSub.subscribe(Pokerplan.PubSub, RoomState.get_topic(room_id))
     end
-
-    PubSub.subscribe(Pokerplan.PubSub, RoomState.get_topic(room_id))
 
     room_state = RoomState.current(room_id)
 
@@ -35,9 +34,15 @@ defmodule PokerplanWeb.RoomLive do
   @impl true
   def handle_info(
         %{event: "presence_diff", payload: %{joins: joins, leaves: leaves}},
-        socket = %{assigns: %{users: users}}
+        socket = %{assigns: %{users: users, room_state: %{room_id: room_id}}}
       ) do
-    {:noreply, socket |> assign(:users, users |> Presence.map_presence(joins, leaves))}
+    next_users = users |> Presence.map_presence(joins, leaves)
+
+    if map_size(next_users) == 0 do
+      RoomState.stop(room_id)
+    end
+
+    {:noreply, assign(socket, :users, next_users)}
   end
 
   @impl true
@@ -58,8 +63,15 @@ defmodule PokerplanWeb.RoomLive do
   @impl true
   def terminate(
         _reason,
-        socket = %{assigns: %{current_user: user = %User{}, room_state: %{room_id: room_id}}}
+        socket = %{
+          assigns: %{
+            current_user: user = %User{},
+            room_state: %{room_id: room_id, data: _data}
+          }
+        }
       ) do
     if connected?(socket), do: Presence.untrack_user(%{room_id: room_id}, user.username)
+
+    PubSub.unsubscribe(Pokerplan.PubSub, Presence.get_topic(%{room_id: room_id}))
   end
 end

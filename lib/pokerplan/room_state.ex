@@ -4,13 +4,9 @@ defmodule Pokerplan.RoomState do
 
   # External API (runs in client process)
 
-  def get_topic(room_id) do
-    "pubsub_poker_room_#{room_id}"
-  end
+  def get_topic(room_id), do: "pubsub_poker_room_#{room_id}"
 
-  def get_name(room_id) do
-    String.to_atom("poker_room_#{room_id}")
-  end
+  def get_name(room_id), do: String.to_atom("poker_room_#{room_id}")
 
   defp notify(state = %{room_id: room_id, data: _data}) do
     PubSub.broadcast(Pokerplan.PubSub, get_topic(room_id), {:room_state, state})
@@ -24,7 +20,7 @@ defmodule Pokerplan.RoomState do
   def start(initial_state = %{room_id: room_id, data: _data}) do
     name = get_name(room_id)
 
-    GenServer.start_link(__MODULE__, initial_state, name: name)
+    GenServer.start(__MODULE__, initial_state, name: name)
   end
 
   def stop(room_id) do
