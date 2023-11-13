@@ -8,6 +8,7 @@ defmodule Pokerplan.Application do
   @impl true
   def start(_type, _args) do
     children = [
+      Pokerplan.RoomState,
       # Start the Telemetry supervisor
       PokerplanWeb.Telemetry,
       # Start the PubSub system

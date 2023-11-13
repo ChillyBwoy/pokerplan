@@ -1,12 +1,17 @@
 defmodule PokerplanWeb.RoomLive do
   use PokerplanWeb, :live_view
+  alias Phoenix.PubSub
 
+  alias Pokerplan.RoomState
   alias Pokerplan.Auth.User
   alias PokerplanWeb.Presence
 
+  @topic RoomState.topic()
+
   @impl true
   def mount(_params, _session, socket) do
-    {:ok, socket}
+    PubSub.subscribe(Pokerplan.PubSub, @topic)
+    {:ok, socket |> assign(:counter, RoomState.current())}
   end
 
   @impl true
@@ -32,6 +37,21 @@ defmodule PokerplanWeb.RoomLive do
         socket = %{assigns: %{users: users}}
       ) do
     {:noreply, socket |> assign(:users, users |> Presence.map_presence(joins, leaves))}
+  end
+
+  @impl true
+  def handle_info({:count, count}, socket) do
+    {:noreply, assign(socket, counter: count)}
+  end
+
+  @impl true
+  def handle_event("inc", _, socket) do
+    {:noreply, assign(socket, :counter, RoomState.incr())}
+  end
+
+  @impl true
+  def handle_event("dec", _, socket) do
+    {:noreply, assign(socket, :counter, RoomState.decr())}
   end
 
   @impl true

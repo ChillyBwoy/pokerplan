@@ -8,4 +8,10 @@
       </.user_avatar>
     </li>
   </ul>
+
+  <div class="flex gap-4 justify-center items-center">
+    <button class="bg-slate-500 w-12 h-12" phx-click="dec">-</button>
+    <div class="text-lg"><%= @counter %></div>
+    <button class="bg-slate-500 w-12 h-12" phx-click="inc">+</button>
+  </div>
 </div>
