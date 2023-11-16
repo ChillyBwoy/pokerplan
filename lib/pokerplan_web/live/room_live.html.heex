@@ -1,11 +1,42 @@
 <div class="flex flex-col gap-6">
-  <h1 class="text-4xl">Room <%= @room_id %></h1>
+  <h1 class="text-4xl text-center"><%= @room_state.title %></h1>
 
-  <ul class="flex flex-col gap-3">
-    <li :for={{username, user} <- @users}>
-      <.user_avatar user={user} size="m">
-        <%= username %>
-      </.user_avatar>
-    </li>
-  </ul>
+  <div class="inline-grid grid-cols-[auto_1fr] gap-4 items-center justify-end">
+    <%= for {username, user} <- @users do %>
+      <div class="flex justify-end">
+        <.user_avatar user={user} size="m">
+          <:slot_before>
+            <%= username %>
+          </:slot_before>
+        </.user_avatar>
+      </div>
+
+      <div class="flex">
+        <%= if username == @current_user.username do %>
+          <ul class="flex gap-3">
+            <li
+              :for={item <- @sequence}
+              class={[
+                " w-16 h-24 items-center justify-center flex text-3xl cursor-pointer rounded-lg border-2 box-border shadow-lg hover:scale-110 transition-transform",
+                !@room_state.users[username] && "bg-blue-400 text-white border-blue-500",
+                @room_state.users[username] == item && "bg-red-400 text-white border-red-500"
+              ]}
+              phx-click={JS.push("vote", value: %{value: item})}
+            >
+              <%= item %>
+            </li>
+          </ul>
+        <% else %>
+          <div class="flex gap-3">
+            <li
+              :for={item <- @sequence}
+              class="bg-gray-400 text-gray-300 w-16 h-24 items-center justify-center flex text-3xl rounded-lg border-gray-500 border-2 box-border shadow-lg opacity-30"
+            >
+              <%= item %>
+            </li>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
 </div>

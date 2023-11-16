@@ -1,0 +1,9 @@
+<div>
+  <.simple_form for={@form} phx-change="validate" phx-submit="save">
+    <.input field={@form[:title]} label="Title" />
+
+    <:actions>
+      <.button>Save</.button>
+    </:actions>
+  </.simple_form>
+</div>

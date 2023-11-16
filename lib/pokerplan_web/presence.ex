@@ -5,23 +5,23 @@ defmodule PokerplanWeb.Presence do
 
   alias Pokerplan.Auth.User
 
-  defp get_topic(%{room_id: id}), do: "presence:room:#{id}"
+  def get_topic(%{room_id: id}), do: "presence:room:#{id}"
 
-  def user_list(topic = %{room_id: _}) do
+  def user_list(topic) do
     initial = topic |> get_topic() |> list()
     map_joins(%{}, initial)
   end
 
   def init(_opts), do: {:ok, %{}}
 
-  def track_user(topic = %{room_id: _}, user = %User{}) do
+  def track_user(topic, user = %User{}) do
     track(self(), get_topic(topic), user.username, %{
       user: user,
       online_at: inspect(System.system_time(:millisecond))
     })
   end
 
-  def untrack_user(topic = %{room_id: _}, username),
+  def untrack_user(topic, username),
     do: untrack(self(), get_topic(topic), username)
 
   def map_presence(target = %{}, joins, leaves) do
