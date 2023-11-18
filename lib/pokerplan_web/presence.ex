@@ -6,6 +6,7 @@ defmodule PokerplanWeb.Presence do
   alias Pokerplan.Auth.User
 
   def get_topic(%{room_id: id}), do: "presence:room:#{id}"
+  def get_topic({:lobby}), do: "presence:lobby"
 
   def user_list(topic) do
     initial = topic |> get_topic() |> list()

@@ -1,21 +1,41 @@
 defmodule PokerplanWeb.LobbyLive do
   use PokerplanWeb, :live_view
-  alias Pokerplan.RoomState
 
-  def mount(_params, _session, socket) do
+  alias Phoenix.PubSub
+
+  alias Pokerplan.Auth.User
+  alias Pokerplan.RoomState
+  alias PokerplanWeb.Presence
+
+  @presence_topic {:lobby}
+
+  def mount(_params, _session, socket = %{assigns: %{current_user: %User{} = user}}) do
+    Presence.track_user(@presence_topic, user)
+    PubSub.subscribe(Pokerplan.PubSub, Presence.get_topic(@presence_topic))
+
     {:ok,
      socket
+     |> assign(:users, Presence.user_list(@presence_topic))
      |> assign(:form, create_form())}
   end
 
+  def handle_info(
+        %{event: "presence_diff", payload: %{joins: joins, leaves: leaves}},
+        socket = %{assigns: %{users: users}}
+      ) do
+    next_users = users |> Presence.map_presence(joins, leaves)
+    {:noreply, assign(socket, :users, next_users)}
+  end
+
   def handle_event("validate", %{"title" => _title}, socket) do
+    # TODO: add validation
     {:noreply, socket}
   end
 
   def handle_event("save", %{"title" => title}, socket) do
     case RoomState.create_new_room(%{title: title}) do
       {:ok, room_id} ->
-        {:noreply, socket |> redirect(to: "/rooms/#{room_id}")}
+        {:noreply, socket |> redirect(to: ~p"/rooms/#{room_id}")}
 
       _ ->
         {:noreply, socket}

@@ -1,4 +1,4 @@
-<div>
+<div class="grid grid-cols-[1fr_20%] gap-8">
   <.simple_form for={@form} phx-change="validate" phx-submit="save">
     <.input field={@form[:title]} label="Title" />
 
@@ -6,4 +6,14 @@
       <.button>Save</.button>
     </:actions>
   </.simple_form>
+
+  <div class="flex flex-col gap-2 justify-center">
+    <%= for {username, user} <- @users do %>
+      <.user_avatar user={user} size="s">
+        <:slot_after>
+          <%= username %>
+        </:slot_after>
+      </.user_avatar>
+    <% end %>
+  </div>
 </div>

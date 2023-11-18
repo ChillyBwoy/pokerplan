@@ -17,19 +17,19 @@ defmodule PokerplanWeb.Router do
     plug :accepts, ["json"]
   end
 
-  # scope "/", PokerplanWeb do
-  #   pipe_through :browser
-
-  #   get "/", PageController, :home
-  # end
-
   scope "/", PokerplanWeb do
+    pipe_through :browser
+
+    get "/", PageController, :home
+  end
+
+  scope "/rooms", PokerplanWeb do
     pipe_through [:browser, :require_authenticated_user]
 
     live_session :require_authenticated_user,
       on_mount: [{PokerplanWeb.UserAuth, :ensure_authenticated}] do
       live "/", LobbyLive
-      live "/rooms/:room_id", RoomLive
+      live "/:room_id", RoomLive
     end
   end
 

@@ -28,6 +28,7 @@ defmodule PokerplanWeb.UserComponents do
       <img
         src={@user.avatar_url}
         alt={@user.username}
+        title={@user.username}
         width={@image_size}
         height={@image_size}
         class="inline rounded-full border border-2 border-blue-500"
