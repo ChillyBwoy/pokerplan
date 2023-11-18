@@ -2,15 +2,29 @@ defmodule PokerplanWeb.RoomLive do
   use PokerplanWeb, :live_view
   alias Phoenix.PubSub
 
-  alias Pokerplan.RoomState
   alias Pokerplan.Auth.User
+  alias Pokerplan.RoomState
+  alias Pokerplan.VoteChoice
   alias PokerplanWeb.Presence
 
-  @sequence [1, 2, 3, 5, 8, 13, 21, 34, "?", "☕️"]
+  @choices [
+    %VoteChoice{value: 0, label: "?"},
+    %VoteChoice{value: 1, label: "1"},
+    %VoteChoice{value: 2, label: "2"},
+    %VoteChoice{value: 3, label: "3"},
+    %VoteChoice{value: 5, label: "5"},
+    %VoteChoice{value: 8, label: "8"},
+    %VoteChoice{value: 13, label: "13"},
+    %VoteChoice{value: 21, label: "21"},
+    %VoteChoice{value: 34, label: "34"},
+    %VoteChoice{value: 55, label: "55"},
+    %VoteChoice{value: 89, label: "89"},
+    %VoteChoice{value: 0, label: "☕️"}
+  ]
 
   @impl true
   def mount(_params, _session, socket) do
-    {:ok, socket |> assign(:sequence, @sequence)}
+    {:ok, socket |> assign(:choices, @choices)}
   end
 
   @impl true
@@ -36,14 +50,9 @@ defmodule PokerplanWeb.RoomLive do
   @impl true
   def handle_info(
         %{event: "presence_diff", payload: %{joins: joins, leaves: leaves}},
-        socket = %{assigns: %{users: users, room_state: %{room_id: room_id}}}
+        socket = %{assigns: %{users: users}}
       ) do
     next_users = users |> Presence.map_presence(joins, leaves)
-
-    if map_size(next_users) == 0 do
-      RoomState.stop(room_id)
-    end
-
     {:noreply, assign(socket, :users, next_users)}
   end
 
@@ -63,18 +72,24 @@ defmodule PokerplanWeb.RoomLive do
           }
         }
       ) do
-    {:noreply, assign(socket, :room_state, RoomState.user_vote(room_id, username, value))}
+    {:noreply, assign(socket, :room_state, RoomState.vote(room_id, username, value))}
   end
 
-  # @impl true
-  # def handle_event("inc", _, socket = %{assigns: %{room_state: %{room_id: room_id}}}) do
-  #   {:noreply, assign(socket, :room_state, RoomState.incr(room_id))}
-  # end
+  def handle_event(
+        "reset",
+        _unsigned_params,
+        socket = %{assigns: %{room_state: %{room_id: room_id}}}
+      ) do
+    {:noreply, assign(socket, :room_state, RoomState.reset(room_id))}
+  end
 
-  # @impl true
-  # def handle_event("dec", _, socket = %{assigns: %{room_state: %{room_id: room_id}}}) do
-  #   {:noreply, assign(socket, :counter, RoomState.decr(room_id))}
-  # end
+  def handle_event(
+        "reveal",
+        _unsigned_params,
+        socket = %{assigns: %{room_state: %{room_id: room_id}}}
+      ) do
+    {:noreply, assign(socket, :room_state, RoomState.reveal(room_id))}
+  end
 
   @impl true
   def terminate(

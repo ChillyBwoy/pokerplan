@@ -1,7 +1,6 @@
-defmodule PokerplanWeb.RoomCreateLive do
+defmodule PokerplanWeb.LobbyLive do
   use PokerplanWeb, :live_view
   alias Pokerplan.RoomState
-  # alias Phoenix.PubSub
 
   def mount(_params, _session, socket) do
     {:ok,
@@ -14,10 +13,8 @@ defmodule PokerplanWeb.RoomCreateLive do
   end
 
   def handle_event("save", %{"title" => title}, socket) do
-    room_id = UUID.uuid4(:hex)
-
-    case RoomState.start(%{room_id: room_id, title: title}) do
-      {:ok, _pid} ->
+    case RoomState.create_new_room(%{title: title}) do
+      {:ok, room_id} ->
         {:noreply, socket |> redirect(to: "/rooms/#{room_id}")}
 
       _ ->
@@ -26,6 +23,6 @@ defmodule PokerplanWeb.RoomCreateLive do
   end
 
   defp create_form() do
-    %{title: ""} |> to_form()
+    %{"title" => ""} |> to_form()
   end
 end

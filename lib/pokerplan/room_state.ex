@@ -8,17 +8,23 @@ defmodule Pokerplan.RoomState do
   end
 
   defp inital_state(%{room_id: room_id, title: title}) do
-    %{room_id: room_id, title: title, users: %{}}
+    %{room_id: room_id, title: title, show_results: false, users: %{}}
   end
+
+  defp get_name(room_id), do: String.to_atom("poker_room_#{room_id}")
 
   def get_topic(room_id), do: "pubsub_poker_room_#{room_id}"
 
-  def get_name(room_id), do: String.to_atom("poker_room_#{room_id}")
+  def create_new_room(%{title: title}) do
+    room_id = UUID.uuid4(:hex)
 
-  def start(params = %{room_id: room_id, title: _title}) do
-    name = get_name(room_id)
+    case GenServer.start(__MODULE__, %{title: title, room_id: room_id}, name: get_name(room_id)) do
+      {:ok, _pid} ->
+        {:ok, room_id}
 
-    GenServer.start(__MODULE__, params, name: name)
+      _ ->
+        {:error, "Could not start room"}
+    end
   end
 
   def stop(room_id) do
@@ -29,12 +35,16 @@ defmodule Pokerplan.RoomState do
     GenServer.call(get_name(room_id), {:current})
   end
 
-  def reset(room_id) do
-    GenServer.call(get_name(room_id), {:reset})
+  def vote(room_id, user_id, value) do
+    GenServer.call(get_name(room_id), {:vote, user_id, value})
   end
 
-  def user_vote(room_id, user_id, value) do
-    GenServer.call(get_name(room_id), {:user_vote, user_id, value})
+  def reveal(room_id) do
+    GenServer.call(get_name(room_id), {:reveal})
+  end
+
+  def reset(room_id) do
+    GenServer.call(get_name(room_id), {:reset})
   end
 
   def init(params = %{room_id: _room_id, title: _title}) do
@@ -47,23 +57,17 @@ defmodule Pokerplan.RoomState do
     {:reply, state, state}
   end
 
-  def handle_call({:user_vote, user_id, value}, _from, state) do
+  def handle_call({:vote, user_id, value}, _from, state) do
     voted = get_in(state, [:users, user_id])
 
-    if voted == value do
-      next_state = put_in(state, [:users, user_id], nil)
-      notify(next_state)
-    else
-      next_state = put_in(state, [:users, user_id], value)
-      notify(next_state)
-    end
+    state |> put_in([:users, user_id], if(voted == value, do: nil, else: value)) |> notify()
+  end
+
+  def handle_call({:reveal}, _from, state) do
+    state |> put_in([:show_results], true) |> notify()
   end
 
   def handle_call({:reset}, _from, state) do
-    next_state =
-      state
-      |> put_in([:data, :users], %{})
-
-    notify(next_state)
+    inital_state(state) |> notify()
   end
 end

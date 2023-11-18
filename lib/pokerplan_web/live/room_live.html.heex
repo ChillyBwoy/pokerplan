@@ -1,42 +1,42 @@
 <div class="flex flex-col gap-6">
   <h1 class="text-4xl text-center"><%= @room_state.title %></h1>
 
-  <div class="inline-grid grid-cols-[auto_1fr] gap-4 items-center justify-end">
-    <%= for {username, user} <- @users do %>
-      <div class="flex justify-end">
-        <.user_avatar user={user} size="m">
-          <:slot_before>
-            <%= username %>
-          </:slot_before>
-        </.user_avatar>
-      </div>
+  <div class="flex justify-center items-center">
+    <%= if @room_state.show_results do %>
+      <.button phx-click="reset">Reset</.button>
+    <% else %>
+      <.button phx-click="reveal">Reveal</.button>
+    <% end %>
+  </div>
 
-      <div class="flex">
-        <%= if username == @current_user.username do %>
-          <ul class="flex gap-3">
-            <li
-              :for={item <- @sequence}
-              class={[
-                " w-16 h-24 items-center justify-center flex text-3xl cursor-pointer rounded-lg border-2 box-border shadow-lg hover:scale-110 transition-transform",
-                !@room_state.users[username] && "bg-blue-400 text-white border-blue-500",
-                @room_state.users[username] == item && "bg-red-400 text-white border-red-500"
-              ]}
-              phx-click={JS.push("vote", value: %{value: item})}
-            >
-              <%= item %>
-            </li>
-          </ul>
-        <% else %>
-          <div class="flex gap-3">
-            <li
-              :for={item <- @sequence}
-              class="bg-gray-400 text-gray-300 w-16 h-24 items-center justify-center flex text-3xl rounded-lg border-gray-500 border-2 box-border shadow-lg opacity-30"
-            >
-              <%= item %>
-            </li>
-          </div>
-        <% end %>
+  <div class="flex flex-wrap items-center justify-center">
+    <%= for {username, user} <- @users do %>
+      <div class="flex flex-col gap-2 justify-center items-center w-1/3 p-4 box-border">
+        <.user_avatar user={user} size="s">
+          <:slot_after>
+            <%= username %>
+          </:slot_after>
+        </.user_avatar>
+        <.playing_card size="l" state={if @room_state.users[username], do: "done", else: "idle"}>
+          <%= if @room_state.show_results && @room_state.users[username] do %>
+            <%= Enum.at(@choices, @room_state.users[username]).label %>
+          <% end %>
+        </.playing_card>
       </div>
     <% end %>
+  </div>
+
+  <div class="fixed bottom-0 left-0 right-0 z-10">
+    <div class="flex gap-2 justify-center py-6">
+      <%= for {choice, idx} <- Enum.with_index(@choices) do %>
+        <.playing_card
+          active
+          state={if @room_state.users[@current_user.username] == idx, do: "done", else: "open"}
+          phx-click={JS.push("vote", value: %{value: idx})}
+        >
+          <%= choice.label %>
+        </.playing_card>
+      <% end %>
+    </div>
   </div>
 </div>
