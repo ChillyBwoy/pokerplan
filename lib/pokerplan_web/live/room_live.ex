@@ -34,18 +34,22 @@ defmodule PokerplanWeb.RoomLive do
         _uri,
         socket = %{assigns: %{current_user: %User{} = user}}
       ) do
-    if connected?(socket) do
-      Presence.track_user(%{room_id: room_id}, user)
-      PubSub.subscribe(Pokerplan.PubSub, Presence.get_topic(%{room_id: room_id}))
-      PubSub.subscribe(Pokerplan.PubSub, RoomState.get_topic(room_id))
+    case RoomState.get_pid(room_id) do
+      nil ->
+        {:noreply, socket |> put_flash(:error, "Room not found") |> redirect(to: ~p"/")}
+
+      _ ->
+        if connected?(socket) do
+          Presence.track_user(%{room_id: room_id}, user)
+          PubSub.subscribe(Pokerplan.PubSub, Presence.get_topic(%{room_id: room_id}))
+          PubSub.subscribe(Pokerplan.PubSub, RoomState.get_topic(room_id))
+        end
+
+        {:noreply,
+         socket
+         |> assign(:users, Presence.user_list(%{room_id: room_id}))
+         |> assign(:room_state, RoomState.current(room_id))}
     end
-
-    room_state = RoomState.current(room_id)
-
-    {:noreply,
-     socket
-     |> assign(:users, Presence.user_list(%{room_id: room_id}))
-     |> assign(:room_state, room_state)}
   end
 
   @impl true

@@ -4,7 +4,6 @@ defmodule Pokerplan.RoomState do
 
   defp notify(state = %{room_id: room_id}) do
     PubSub.broadcast(Pokerplan.PubSub, get_topic(room_id), {:room_state, state})
-    {:reply, state, state}
   end
 
   defp inital_state(%{room_id: room_id, title: title}) do
@@ -19,8 +18,8 @@ defmodule Pokerplan.RoomState do
     room_id = UUID.uuid4(:hex)
 
     case GenServer.start(__MODULE__, %{title: title, room_id: room_id}, name: get_name(room_id)) do
-      {:ok, _pid} ->
-        {:ok, room_id}
+      {:ok, pid} ->
+        {:ok, room_id, pid}
 
       _ ->
         {:error, "Could not start room"}
@@ -29,6 +28,10 @@ defmodule Pokerplan.RoomState do
 
   def stop(room_id) do
     GenServer.stop(get_name(room_id))
+  end
+
+  def get_pid(room_id) do
+    GenServer.whereis(get_name(room_id))
   end
 
   def current(room_id) do
@@ -60,14 +63,23 @@ defmodule Pokerplan.RoomState do
   def handle_call({:vote, user_id, value}, _from, state) do
     voted = get_in(state, [:users, user_id])
 
-    state |> put_in([:users, user_id], if(voted == value, do: nil, else: value)) |> notify()
+    next_state = put_in(state, [:users, user_id], if(voted == value, do: nil, else: value))
+    notify(next_state)
+
+    {:reply, next_state, next_state}
   end
 
   def handle_call({:reveal}, _from, state) do
-    state |> put_in([:show_results], true) |> notify()
+    next_state = put_in(state, [:show_results], true)
+    notify(next_state)
+
+    {:reply, next_state, next_state}
   end
 
   def handle_call({:reset}, _from, state) do
-    inital_state(state) |> notify()
+    next_state = inital_state(state)
+    notify(next_state)
+
+    {:reply, next_state, next_state}
   end
 end

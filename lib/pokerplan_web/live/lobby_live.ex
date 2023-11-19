@@ -34,7 +34,7 @@ defmodule PokerplanWeb.LobbyLive do
 
   def handle_event("save", %{"title" => title}, socket) do
     case RoomState.create_new_room(%{title: title}) do
-      {:ok, room_id} ->
+      {:ok, room_id, _pid} ->
         {:noreply, socket |> redirect(to: ~p"/rooms/#{room_id}")}
 
       _ ->
