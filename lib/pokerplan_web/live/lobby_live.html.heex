@@ -1,17 +1,27 @@
-<div class="grid grid-cols-[30%_1fr] gap-8">
-  <.simple_form for={@form} phx-change="validate" phx-submit="save">
-    <.input field={@form[:title]} label="Title" />
+<.layout>
+  <div class="h-full grid grid-rows-[auto_1fr] justify-center gap-8">
+    <.simple_form
+      for={@form}
+      phx-change="validate"
+      phx-submit="save"
+      class="flex gap-2 items-end justify-center"
+    >
+      <.input field={@form[:title]} label="Title" />
 
-    <.button>Save</.button>
-  </.simple_form>
+      <.button>Save</.button>
+    </.simple_form>
 
-  <div class="flex gap-2 justify-center">
-    <%= for {username, user} <- @users do %>
-      <.user_avatar user={user} size="s">
-        <:slot_after>
-          <%= username %>
-        </:slot_after>
-      </.user_avatar>
-    <% end %>
+    <div class="flex flex-col gap-6">
+      <h2 class="text-2xl text-center">Users</h2>
+      <div class="flex justify-center gap-4">
+        <%= for {username, user} <- @users do %>
+          <.user_avatar user={user} size="xl">
+            <:slot_after>
+              <%= username %>
+            </:slot_after>
+          </.user_avatar>
+        <% end %>
+      </div>
+    </div>
   </div>
-</div>
+</.layout>

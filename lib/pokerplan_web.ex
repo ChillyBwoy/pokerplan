@@ -52,7 +52,8 @@ defmodule PokerplanWeb do
   def live_view do
     quote do
       use Phoenix.LiveView,
-        layout: {PokerplanWeb.Layouts, :app}
+        layout: {PokerplanWeb.Layouts, :app},
+        container: {:div, class: "h-full"}
 
       unquote(html_helpers())
     end

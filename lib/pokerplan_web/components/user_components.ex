@@ -70,4 +70,19 @@ defmodule PokerplanWeb.UserComponents do
     </button>
     """
   end
+
+  attr :class, :string, default: nil
+
+  slot :inner_block
+
+  def layout(assigns) do
+    ~H"""
+    <div class={[
+      "p-10 mx-auto h-full",
+      @class
+    ]}>
+      <%= render_slot(@inner_block) %>
+    </div>
+    """
+  end
 end
