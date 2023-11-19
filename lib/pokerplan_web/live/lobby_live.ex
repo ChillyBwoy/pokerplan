@@ -4,7 +4,7 @@ defmodule PokerplanWeb.LobbyLive do
   alias Phoenix.PubSub
 
   alias Pokerplan.Auth.User
-  alias Pokerplan.RoomState
+  alias Pokerplan.Game.Server, as: GameServer
   alias PokerplanWeb.Presence
 
   @presence_topic {:lobby}
@@ -32,10 +32,14 @@ defmodule PokerplanWeb.LobbyLive do
     {:noreply, socket}
   end
 
-  def handle_event("save", %{"title" => title}, socket) do
-    case RoomState.create_new_room(%{title: title}) do
+  def handle_event(
+        "save",
+        %{"title" => title},
+        socket = %{assigns: %{current_user: %User{} = current_user}}
+      ) do
+    case GameServer.create_new_game(%{title: title, owner: current_user}) do
       {:ok, room_id, _pid} ->
-        {:noreply, socket |> redirect(to: ~p"/rooms/#{room_id}")}
+        {:noreply, socket |> redirect(to: ~p"/games/#{room_id}")}
 
       _ ->
         {:noreply, socket}

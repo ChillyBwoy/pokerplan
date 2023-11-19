@@ -5,7 +5,7 @@ defmodule PokerplanWeb.Presence do
 
   alias Pokerplan.Auth.User
 
-  def get_topic(%{room_id: id}), do: "presence:room:#{id}"
+  def get_topic(%{game_id: id}), do: "presence:game:#{id}"
   def get_topic({:lobby}), do: "presence:lobby"
 
   def user_list(topic) do
@@ -15,7 +15,7 @@ defmodule PokerplanWeb.Presence do
 
   def init(_opts), do: {:ok, %{}}
 
-  def track_user(topic, user = %User{}) do
+  def track_user(topic, %User{} = user) do
     track(self(), get_topic(topic), user.username, %{
       user: user,
       online_at: inspect(System.system_time(:millisecond))

@@ -42,7 +42,8 @@ defmodule PokerplanWeb.UserComponents do
 
   attr :class, :string, default: nil
   attr :size, :string, values: ["m", "l"], default: "m"
-  attr :state, :string, values: ["idle", "open", "done"], default: "idle"
+  attr :state, :string, values: ["idle", "done"], default: "idle"
+  attr :flipped, :boolean, default: false, doc: "Whether the card is flipped or not"
   attr :active, :boolean, default: false, doc: "Whether the card is hovered or not"
   attr :rest, :global, include: ~w(disabled form name value)
 
@@ -57,9 +58,10 @@ defmodule PokerplanWeb.UserComponents do
         @size == "l" && "w-24 h-36 text-4xl",
         @active && "hover:scale-110 hover:-translate-y-2 cursor-pointer",
         !@active && "cursor-default",
-        @state == "idle" && "bg-gray-400 border-gray-500",
-        @state == "open" && "bg-blue-400 border-blue-500",
-        @state == "done" && "bg-green-400 border-green-500",
+        !@flipped && @state == "idle" && "bg-gray-400 border-gray-500",
+        @flipped && @state == "idle" && "bg-blue-400 border-blue-500",
+        !@flipped && @state == "done" && "bg-green-400 border-green-500",
+        @flipped && @state == "done" && "bg-green-400 border-green-500",
         @class
       ]}
       {@rest}

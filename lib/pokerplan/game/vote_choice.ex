@@ -1,4 +1,4 @@
-defmodule Pokerplan.VoteChoice do
+defmodule Pokerplan.Game.VoteChoice do
   @derive Jason.Encoder
   defstruct [
     :label,
