@@ -1,11 +1,18 @@
 <div class="flex flex-col gap-6">
-  <h1 class="text-4xl text-center"><%= @room_state.title %></h1>
+  <div class="flex justify-between">
+    <h1 class="text-4xl text-center"><%= @game_state.title %></h1>
+    <%= if @game_state.owner.username == @current_user.username do %>
+      <.button phx-click="close">
+        Close Room
+      </.button>
+    <% end %>
+  </div>
 
   <div class="flex justify-center items-center">
-    <%= if @room_state.show_results do %>
+    <%= if @game_state.show_results do %>
       <.button phx-click="reset">Reset</.button>
     <% else %>
-      <.button phx-click="reveal">Reveal</.button>
+      <.button phx-click="reveal" class="bg-blue-400">Reveal</.button>
     <% end %>
   </div>
 
@@ -17,9 +24,13 @@
             <%= username %>
           </:slot_after>
         </.user_avatar>
-        <.playing_card size="l" state={if @room_state.users[username], do: "done", else: "idle"}>
-          <%= if @room_state.show_results && @room_state.users[username] do %>
-            <%= Enum.at(@choices, @room_state.users[username]).label %>
+        <.playing_card
+          size="l"
+          flipped={@game_state.votes[username]}
+          state={if @game_state.show_results, do: "done", else: "idle"}
+        >
+          <%= if @game_state.show_results && @game_state.votes[username] do %>
+            <%= Enum.at(@choices, @game_state.votes[username]).label %>
           <% end %>
         </.playing_card>
       </div>
@@ -31,7 +42,8 @@
       <%= for {choice, idx} <- Enum.with_index(@choices) do %>
         <.playing_card
           active
-          state={if @room_state.users[@current_user.username] == idx, do: "done", else: "open"}
+          flipped
+          state={if @game_state.votes[@current_user.username] == idx, do: "done", else: "idle"}
           phx-click={JS.push("vote", value: %{value: idx})}
         >
           <%= choice.label %>

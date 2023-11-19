@@ -23,13 +23,13 @@ defmodule PokerplanWeb.Router do
     get "/", PageController, :home
   end
 
-  scope "/rooms", PokerplanWeb do
+  scope "/games", PokerplanWeb do
     pipe_through [:browser, :require_authenticated_user]
 
     live_session :require_authenticated_user,
       on_mount: [{PokerplanWeb.UserAuth, :ensure_authenticated}] do
       live "/", LobbyLive
-      live "/:room_id", RoomLive
+      live "/:game_id", GameLive
     end
   end
 
