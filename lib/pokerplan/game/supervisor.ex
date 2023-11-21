@@ -2,6 +2,7 @@ defmodule Pokerplan.Game.Supervisor do
   use DynamicSupervisor
 
   alias Pokerplan.Game.State
+  alias Pokerplan.Game.Server, as: GameServer
   alias Pokerplan.Auth.User
 
   def start_link(arg) do
@@ -11,7 +12,7 @@ defmodule Pokerplan.Game.Supervisor do
   def start_new_game(%{title: title, owner: %User{} = owner}) do
     initial_state = State.new(%{title: title, owner: owner})
 
-    case DynamicSupervisor.start_child(__MODULE__, {Pokerplan.Game.Server, initial_state}) do
+    case DynamicSupervisor.start_child(__MODULE__, {GameServer, initial_state}) do
       {:ok, _pid} ->
         {:ok, initial_state.id}
 
@@ -23,5 +24,10 @@ defmodule Pokerplan.Game.Supervisor do
   @impl true
   def init(_init_arg) do
     DynamicSupervisor.init(strategy: :one_for_one)
+  end
+
+  def list_games() do
+    DynamicSupervisor.which_children(__MODULE__)
+    |> Enum.map(fn {_, pid, _, _} -> :sys.get_state(pid) end)
   end
 end

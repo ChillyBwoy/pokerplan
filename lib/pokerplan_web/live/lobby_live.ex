@@ -13,13 +13,10 @@ defmodule PokerplanWeb.LobbyLive do
     Presence.track_user(@presence_topic, user)
     PubSub.subscribe(Pokerplan.PubSub, Presence.get_topic(@presence_topic))
 
-    list_of_children = DynamicSupervisor.which_children(GameSupervisor)
-
-    IO.inspect(list_of_children)
-
     {:ok,
      socket
      |> assign(:users, Presence.user_list(@presence_topic))
+     |> assign(:games, GameSupervisor.list_games())
      |> assign(:form, create_form())}
   end
 
