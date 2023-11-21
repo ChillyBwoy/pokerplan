@@ -20,11 +20,11 @@ defmodule Pokerplan.Game.State do
     }
   end
 
-  def voted?(state = %State{}, key) do
+  def voted?(%State{} = state, key) do
     Map.has_key?(state.votes, key)
   end
 
-  def vote(state = %State{}, key, value) do
+  def vote(%State{} = state, key, value) do
     prev_vote = Map.get(state.votes, key)
 
     if prev_vote == value do
@@ -34,11 +34,34 @@ defmodule Pokerplan.Game.State do
     end
   end
 
-  def show(state = %State{}) do
+  def show(%State{} = state) do
     %State{state | show_results: true}
   end
 
-  def reset(state = %State{}) do
+  def reset(%State{} = state) do
     %State{state | show_results: false, votes: %{}}
+  end
+
+  def results(%State{} = state) do
+    state.votes
+    |> Map.values()
+    |> Enum.reduce(%{}, fn vote, acc ->
+      Map.update(acc, vote, 1, &(&1 + 1))
+    end)
+  end
+
+  def avg(%State{} = state) do
+    size = state.votes |> Map.values() |> Enum.filter(&(&1 != 0)) |> length()
+
+    case size do
+      0 ->
+        0
+
+      _ ->
+        state.votes
+        |> Map.values()
+        |> Enum.reduce(0, &(&1 + &2))
+        |> div(size)
+    end
   end
 end
