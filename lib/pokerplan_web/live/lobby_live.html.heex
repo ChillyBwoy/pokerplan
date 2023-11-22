@@ -1,5 +1,5 @@
 <.layout>
-  <div class="h-full grid grid-rows-[auto_1fr] justify-center gap-8">
+  <div class="h-full grid grid-rows-[auto_1fr] grid-cols-1 justify-center gap-8">
     <.simple_form
       for={@form}
       phx-change="validate"
@@ -11,16 +11,31 @@
       <.button>Save</.button>
     </.simple_form>
 
-    <div class="flex flex-col gap-6">
-      <h2 class="text-2xl text-center">Users</h2>
-      <div class="flex justify-center gap-4">
-        <%= for {username, user} <- @users do %>
-          <.user_avatar user={user} size="xl">
-            <:slot_after>
-              <%= username %>
-            </:slot_after>
-          </.user_avatar>
-        <% end %>
+    <div class="grid grid-cols-[50%_50%]">
+      <div class="flex flex-col gap-6">
+        <h2 class="text-2xl">Users</h2>
+        <div class="flex justify-start gap-4">
+          <%= for {username, user} <- @users do %>
+            <.user_avatar user={user} size="xl">
+              <:slot_after>
+                <%= username %>
+              </:slot_after>
+            </.user_avatar>
+          <% end %>
+        </div>
+      </div>
+
+      <div class="flex flex-col gap-6">
+        <h2 class="text-2xl text-right">Games</h2>
+        <ol class="list-decimal">
+          <%= for game <- @games do %>
+            <li class="text-right">
+              <.link navigate={~p"/games/#{game.id}"} class="underline underline-offset-2">
+                <%= game.title %>
+              </.link>
+            </li>
+          <% end %>
+        </ol>
       </div>
     </div>
   </div>

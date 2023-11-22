@@ -10,6 +10,8 @@ defmodule Pokerplan.Application do
     children = [
       # Start the Telemetry supervisor
       PokerplanWeb.Telemetry,
+      Pokerplan.Game.Supervisor,
+      {Registry, keys: :unique, name: Pokerplan.Registry},
       # Start the PubSub system
       {Phoenix.PubSub, name: Pokerplan.PubSub},
       PokerplanWeb.Presence,
