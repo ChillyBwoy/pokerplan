@@ -17,6 +17,9 @@ config :pokerplan, PokerplanWeb.Endpoint,
   pubsub_server: Pokerplan.PubSub,
   live_view: [signing_salt: "Z4NqTHhY"]
 
+config :pokerplan,
+  auth_token_secret: System.get_env("AUTH_TOKEN_SECRET")
+
 # Configure esbuild (the version is required)
 config :esbuild,
   version: "0.17.11",
@@ -47,7 +50,23 @@ config :logger, :console,
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
 
+config :ueberauth, Ueberauth,
+  providers: [
+    github: {
+      Ueberauth.Strategy.Github,
+      [
+        default_scope: "user",
+        request_path: "/auth/signin/github",
+        callback_path: "/auth/signin/github/callback",
+        allow_private_emails: true
+      ]
+    }
+  ]
+
+config :ueberauth, Ueberauth.Strategy.Github.OAuth,
+  client_id: System.get_env("GITHUB_CLIENT_ID"),
+  client_secret: System.get_env("GITHUB_CLIENT_SECRET")
+
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{config_env()}.exs"
-import_config "ueberauth.exs"
