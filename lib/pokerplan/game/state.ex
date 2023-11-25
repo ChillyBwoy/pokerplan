@@ -1,6 +1,7 @@
 defmodule Pokerplan.Game.State do
   alias Pokerplan.Auth.User
   alias Pokerplan.Game.State, as: State
+  alias Pokerplan.Game.VoteChoice, as: VoteChoice
 
   @enforce_keys [:title, :owner]
   @derive Jason.Encoder
@@ -8,7 +9,10 @@ defmodule Pokerplan.Game.State do
             title: "",
             owner: %User{},
             show_results: false,
-            votes: %{}
+            votes: %{},
+            average: 0,
+            results: %{},
+            choices: "fibonacci"
 
   def new(%{title: title, owner: owner = %User{}}) do
     id = UUID.uuid4(:hex)
@@ -35,33 +39,33 @@ defmodule Pokerplan.Game.State do
   end
 
   def show(%State{} = state) do
-    %State{state | show_results: true}
+    # TODO: make this configurable
+    choices = VoteChoice.list({:fibonacci})
+
+    size =
+      state.votes
+      |> Map.values()
+      |> Enum.filter(&(Enum.at(choices, &1).value != 0))
+      |> length()
+
+    sum =
+      state.votes
+      |> Map.values()
+      |> Enum.reduce(0, &(Enum.at(choices, &1).value + &2))
+
+    average = if size > 0, do: sum / size, else: 0
+
+    results =
+      state.votes
+      |> Map.values()
+      |> Enum.reduce(%{}, fn vote, acc ->
+        Map.update(acc, vote, 1, &(&1 + 1))
+      end)
+
+    %State{state | show_results: true, average: average, results: results}
   end
 
   def reset(%State{} = state) do
-    %State{state | show_results: false, votes: %{}}
-  end
-
-  def results(%State{} = state) do
-    state.votes
-    |> Map.values()
-    |> Enum.reduce(%{}, fn vote, acc ->
-      Map.update(acc, vote, 1, &(&1 + 1))
-    end)
-  end
-
-  def avg(%State{} = state) do
-    size = state.votes |> Map.values() |> Enum.filter(&(&1 != 0)) |> length()
-
-    case size do
-      0 ->
-        0
-
-      _ ->
-        state.votes
-        |> Map.values()
-        |> Enum.reduce(0, &(&1 + &2))
-        |> div(size)
-    end
+    %State{state | show_results: false, votes: %{}, average: 0, results: %{}}
   end
 end

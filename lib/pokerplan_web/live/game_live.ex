@@ -3,14 +3,14 @@ defmodule PokerplanWeb.GameLive do
 
   alias Phoenix.PubSub
 
-  alias Pokerplan.Game.Data, as: GameData
   alias Pokerplan.Game.Server, as: GameServer
   alias Pokerplan.Game.State, as: GameState
+  alias Pokerplan.Game.VoteChoice, as: VoteChoice
   alias Pokerplan.Auth.User
 
   alias PokerplanWeb.Presence
 
-  @choices GameData.choices({:fibonacci})
+  @choices VoteChoice.list({:fibonacci})
 
   @impl true
   def mount(_params, _session, socket) do

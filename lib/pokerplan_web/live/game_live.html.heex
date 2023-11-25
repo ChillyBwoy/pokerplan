@@ -39,16 +39,35 @@
     <% end %>
   </div>
 
-  <div class="flex gap-2 justify-center">
-    <%= for {choice, idx} <- Enum.with_index(@choices) do %>
-      <.playing_card
-        active={!@game_state.show_results}
-        flipped={!@game_state.show_results}
-        state={if @game_state.votes[@current_user.username] == idx, do: "done", else: "idle"}
-        phx-click={!@game_state.show_results && JS.push("vote", value: %{value: idx})}
-      >
-        <%= choice.label %>
-      </.playing_card>
-    <% end %>
-  </div>
+  <%= if @game_state.show_results do %>
+    <div class="flex gap-8 justify-center">
+      <div class="flex flex-col gap-4 justify-center items-center">
+        <h5 class="text-2xl">Average</h5>
+        <h3 class="text-3xl font-bold"><%= @game_state.average %></h3>
+      </div>
+      <div class="flex gap-4">
+        <%= for {vote, amount} <- @game_state.results do %>
+          <div class="flex flex-col gap-2">
+            <h5 class="font-bold text-xl text-center"><%= amount %></h5>
+            <.playing_card size="m" flipped state="idle">
+              <%= Enum.at(@choices, vote).label %>
+            </.playing_card>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  <% else %>
+    <div class="flex gap-2 justify-center">
+      <%= for {choice, idx} <- Enum.with_index(@choices) do %>
+        <.playing_card
+          active={!@game_state.show_results}
+          flipped={!@game_state.show_results}
+          state={if @game_state.votes[@current_user.username] == idx, do: "done", else: "idle"}
+          phx-click={!@game_state.show_results && JS.push("vote", value: %{value: idx})}
+        >
+          <%= choice.label %>
+        </.playing_card>
+      <% end %>
+    </div>
+  <% end %>
 </.layout>
