@@ -20,6 +20,7 @@ defmodule PokerplanWeb.LobbyLive do
      socket
      |> assign(:users, Presence.user_list(@presence_topic))
      |> assign(:games, GameSupervisor.list_games())
+     |> assign(:errors, %{})
      |> assign(:form, create_form())}
   end
 
@@ -39,9 +40,8 @@ defmodule PokerplanWeb.LobbyLive do
     {:noreply, assign(socket, :games, GameSupervisor.list_games())}
   end
 
-  def handle_event("validate", %{"title" => _title}, socket) do
-    # TODO: add validation
-    {:noreply, socket}
+  def handle_event("validate", form = %{"title" => _title}, socket) do
+    {:noreply, socket |> assign(:errors, validate_form(form))}
   end
 
   def handle_event(
@@ -60,5 +60,27 @@ defmodule PokerplanWeb.LobbyLive do
 
   defp create_form() do
     %{"title" => ""} |> to_form()
+  end
+
+  defp validate_form(form) do
+    errors =
+      %{}
+      |> validate_field(form, :title)
+
+    if map_size(errors) == 0 do
+      {:ok}
+    else
+      {:error, errors}
+    end
+  end
+
+  defp validate_field(%{} = errors, form, field) do
+    cond do
+      Map.get(form, Atom.to_string(field), "") == "" ->
+        Map.put(errors, field, ["can't be blank"])
+
+      true ->
+        errors
+    end
   end
 end
