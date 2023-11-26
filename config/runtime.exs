@@ -20,6 +20,13 @@ if System.get_env("PHX_SERVER") do
   config :pokerplan, PokerplanWeb.Endpoint, server: true
 end
 
+config :pokerplan,
+  auth_token_secret: System.get_env("AUTH_TOKEN_SECRET")
+
+config :ueberauth, Ueberauth.Strategy.Github.OAuth,
+  client_id: System.get_env("GITHUB_CLIENT_ID"),
+  client_secret: System.get_env("GITHUB_CLIENT_SECRET")
+
 if config_env() == :prod do
   # The secret key base is used to sign/encrypt cookies and other secrets.
   # A default value is used in config/dev.exs and config/test.exs but you
