@@ -68,4 +68,8 @@ defmodule Pokerplan.Game.State do
   def reset(%State{} = state) do
     %State{state | show_results: false, votes: %{}, average: 0, results: %{}}
   end
+
+  def remove_player(%State{} = state, username) do
+    %State{state | votes: Map.delete(state.votes, username)}
+  end
 end

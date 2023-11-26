@@ -104,13 +104,15 @@ defmodule PokerplanWeb.GameLive do
         _reason,
         socket = %{
           assigns: %{
-            current_user: %User{} = user,
+            current_user: %User{} = current_user,
             game_state: %GameState{} = game_state
           }
         }
       ) do
-    if connected?(socket),
-      do: Presence.untrack_user(%{game_id: game_state.id}, user.username)
+    if connected?(socket) do
+      Presence.untrack_user(%{game_id: game_state.id}, current_user.username)
+      GameServer.dispatch({:player_leave, id: game_state.id, username: current_user.username})
+    end
 
     PubSub.unsubscribe(Pokerplan.PubSub, Presence.get_topic(%{game_id: game_state.id}))
   end

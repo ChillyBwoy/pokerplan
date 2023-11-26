@@ -44,6 +44,10 @@ defmodule Pokerplan.Game.Server do
     get_name(id) |> GenServer.call({:reset})
   end
 
+  def dispatch({:player_leave, id: id, username: username}) do
+    get_name(id) |> GenServer.call({:player_leave, username})
+  end
+
   # Callbacks
 
   @impl true
@@ -64,6 +68,11 @@ defmodule Pokerplan.Game.Server do
   @impl true
   def handle_call({:reset}, _from, %State{} = state) do
     State.reset(state) |> reply({:notify})
+  end
+
+  @impl true
+  def handle_call({:player_leave, username}, _from, %State{} = state) do
+    State.remove_player(state, username) |> reply({:notify})
   end
 
   # Private funcs
