@@ -4,13 +4,17 @@ defmodule Pokerplan.Game.Server do
   alias Phoenix.PubSub
   alias Pokerplan.Game.State
 
+  # 30 minutes
+  @timeout 1_000 * 60 * 30
+
   def start_link(%State{} = initial_state) do
     GenServer.start_link(__MODULE__, initial_state, name: get_name(initial_state.id))
   end
 
   @impl true
   def init(%State{} = initial_state) do
-    {:ok, initial_state}
+    PubSub.broadcast(Pokerplan.PubSub, get_topic(), {:game_start, initial_state})
+    {:ok, initial_state, @timeout}
   end
 
   def stop(id) do
@@ -20,6 +24,8 @@ defmodule Pokerplan.Game.Server do
   # Public API
 
   def get_topic(id), do: "pubsub_poker_game_#{id}"
+
+  def get_topic(), do: "pubsub_poker"
 
   def active?(id) do
     case GenServer.whereis(get_name(id)) do
@@ -75,15 +81,21 @@ defmodule Pokerplan.Game.Server do
     State.remove_player(state, username) |> reply({:notify})
   end
 
+  @impl true
+  def handle_info(:timeout, state) do
+    PubSub.broadcast(Pokerplan.PubSub, get_topic(), {:game_end, state})
+    {:stop, :normal, state}
+  end
+
   # Private funcs
 
   defp reply(%State{} = state) do
-    {:reply, state, state}
+    {:reply, state, state, @timeout}
   end
 
   defp reply(%State{} = state, {:notify}) do
     PubSub.broadcast(Pokerplan.PubSub, get_topic(state.id), {:game_state, state})
-    {:reply, state, state}
+    {:reply, state, state, @timeout}
   end
 
   defp get_name(id), do: {:via, Registry, {Pokerplan.Registry, "poker_game_#{id}"}}

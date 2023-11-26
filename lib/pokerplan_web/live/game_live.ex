@@ -28,6 +28,7 @@ defmodule PokerplanWeb.GameLive do
         Presence.track_user(%{game_id: id}, current_user)
         PubSub.subscribe(Pokerplan.PubSub, Presence.get_topic(%{game_id: id}))
         PubSub.subscribe(Pokerplan.PubSub, GameServer.get_topic(id))
+        PubSub.subscribe(Pokerplan.PubSub, GameServer.get_topic())
       end
 
       {:noreply,
@@ -51,6 +52,18 @@ defmodule PokerplanWeb.GameLive do
   @impl true
   def handle_info({:game_state, game_state}, socket) do
     {:noreply, assign(socket, game_state: game_state)}
+  end
+
+  @impl true
+  def handle_info(
+        {:game_end, %GameState{} = end_game_state},
+        socket = %{assigns: %{game_state: %GameState{} = game_state}}
+      ) do
+    if end_game_state.id == game_state.id do
+      {:noreply, socket |> put_flash(:info, "Room has been closed") |> redirect(to: ~p"/")}
+    else
+      {:noreply, socket}
+    end
   end
 
   @impl true
@@ -90,15 +103,6 @@ defmodule PokerplanWeb.GameLive do
     {:noreply, assign(socket, :game_state, GameServer.dispatch({:reveal, id: game_state.id}))}
   end
 
-  def handle_event(
-        "close",
-        _unsigned_params,
-        socket = %{assigns: %{game_state: %GameState{} = game_state}}
-      ) do
-    GameServer.stop(game_state.id)
-    {:noreply, socket |> put_flash(:info, "Room has been closed") |> redirect(to: ~p"/")}
-  end
-
   @impl true
   def terminate(
         _reason,
@@ -111,6 +115,9 @@ defmodule PokerplanWeb.GameLive do
       ) do
     if connected?(socket) do
       Presence.untrack_user(%{game_id: game_state.id}, current_user.username)
+    end
+
+    if GameServer.active?(game_state.id) do
       GameServer.dispatch({:player_leave, id: game_state.id, username: current_user.username})
     end
 

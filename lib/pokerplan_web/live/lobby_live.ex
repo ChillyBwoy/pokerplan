@@ -4,6 +4,8 @@ defmodule PokerplanWeb.LobbyLive do
   alias Phoenix.PubSub
 
   alias Pokerplan.Auth.User
+  alias Pokerplan.Game.Server, as: GameServer
+  alias Pokerplan.Game.State, as: GameState
   alias Pokerplan.Game.Supervisor, as: GameSupervisor
   alias PokerplanWeb.Presence
 
@@ -12,6 +14,7 @@ defmodule PokerplanWeb.LobbyLive do
   def mount(_params, _session, socket = %{assigns: %{current_user: %User{} = user}}) do
     Presence.track_user(@presence_topic, user)
     PubSub.subscribe(Pokerplan.PubSub, Presence.get_topic(@presence_topic))
+    PubSub.subscribe(Pokerplan.PubSub, GameServer.get_topic())
 
     {:ok,
      socket
@@ -26,6 +29,14 @@ defmodule PokerplanWeb.LobbyLive do
       ) do
     next_users = users |> Presence.map_presence(joins, leaves)
     {:noreply, assign(socket, :users, next_users)}
+  end
+
+  def handle_info({:game_start, %GameState{}}, socket) do
+    {:noreply, assign(socket, :games, GameSupervisor.list_games())}
+  end
+
+  def handle_info({:game_end, %GameState{}}, socket) do
+    {:noreply, assign(socket, :games, GameSupervisor.list_games())}
   end
 
   def handle_event("validate", %{"title" => _title}, socket) do

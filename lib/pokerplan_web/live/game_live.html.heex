@@ -1,12 +1,5 @@
 <.layout class="grid grid-rows-[auto_100px_1fr_auto]">
-  <div class="flex justify-between">
-    <h1 class="text-4xl text-center"><%= @game_state.title %></h1>
-    <%= if @game_state.owner.username == @current_user.username do %>
-      <.button phx-click="close">
-        Close Room
-      </.button>
-    <% end %>
-  </div>
+  <h1 class="text-4xl text-center"><%= @game_state.title %></h1>
 
   <div class="flex justify-center items-center">
     <%= if @game_state.show_results do %>

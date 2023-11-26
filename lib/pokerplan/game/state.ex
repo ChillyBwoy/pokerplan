@@ -12,7 +12,8 @@ defmodule Pokerplan.Game.State do
             votes: %{},
             average: 0,
             results: %{},
-            choices: "fibonacci"
+            choices: "fibonacci",
+            created_at: DateTime.utc_now()
 
   def new(%{title: title, owner: owner = %User{}}) do
     id = UUID.uuid4(:hex)
@@ -20,7 +21,8 @@ defmodule Pokerplan.Game.State do
     %State{
       id: id,
       title: title,
-      owner: owner
+      owner: owner,
+      created_at: DateTime.utc_now()
     }
   end
 
