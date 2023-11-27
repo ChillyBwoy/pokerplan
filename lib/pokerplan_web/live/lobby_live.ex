@@ -7,6 +7,7 @@ defmodule PokerplanWeb.LobbyLive do
   alias Pokerplan.Game.Server, as: GameServer
   alias Pokerplan.Game.State, as: GameState
   alias Pokerplan.Game.Supervisor, as: GameSupervisor
+  alias Pokerplan.Game.NewGameForm
   alias PokerplanWeb.Presence
 
   @presence_topic {:lobby}
@@ -16,11 +17,16 @@ defmodule PokerplanWeb.LobbyLive do
     PubSub.subscribe(Pokerplan.PubSub, Presence.get_topic(@presence_topic))
     PubSub.subscribe(Pokerplan.PubSub, GameServer.get_topic())
 
+    form =
+      %NewGameForm{}
+      |> NewGameForm.changeset(%{})
+      |> to_form(as: :game_form)
+
     {:ok,
      socket
      |> assign(:users, Presence.user_list(@presence_topic))
      |> assign(:games, GameSupervisor.list_games())
-     |> assign(:form, create_form())}
+     |> assign(:form, form)}
   end
 
   def handle_info(
@@ -39,14 +45,19 @@ defmodule PokerplanWeb.LobbyLive do
     {:noreply, assign(socket, :games, GameSupervisor.list_games())}
   end
 
-  def handle_event("validate", %{"title" => _title}, socket) do
-    # TODO: add validation
-    {:noreply, socket}
+  def handle_event("validate", %{"game_form" => params}, socket) do
+    form =
+      %NewGameForm{}
+      |> NewGameForm.changeset(params)
+      |> Map.put(:action, :validate)
+      |> to_form(as: :game_form)
+
+    {:noreply, assign(socket, form: form)}
   end
 
   def handle_event(
         "save",
-        %{"title" => title},
+        %{"game_form" => %{"title" => title}},
         socket = %{assigns: %{current_user: %User{} = current_user}}
       ) do
     case GameSupervisor.start_new_game(%{title: title, owner: current_user}) do
@@ -56,9 +67,5 @@ defmodule PokerplanWeb.LobbyLive do
       {:error, reason} ->
         {:noreply, socket |> put_flash(:error, reason)}
     end
-  end
-
-  defp create_form() do
-    %{"title" => ""} |> to_form()
   end
 end

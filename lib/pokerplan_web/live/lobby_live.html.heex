@@ -1,48 +1,57 @@
 <.layout>
-  <div class="flex flex-col gap-8">
-    <.simple_form
-      for={@form}
-      phx-change="validate"
-      phx-submit="save"
-      class="flex gap-2 items-end justify-center"
-    >
-      <.input field={@form[:title]} label="Title" />
-      <.button>Save</.button>
-    </.simple_form>
-
-    <div class="flex flex-col gap-6">
-      <h2 class="text-2xl">Games</h2>
-      <div class="grid grid-cols-[1fr_auto_auto] gap-2 items-center">
-        <%= for game <- @games do %>
-          <.link
-            navigate={~p"/games/#{game.id}"}
-            class="underline underline-offset-2 font-bold text-lg"
-          >
-            <%= game.title %>
-          </.link>
-          <span class="text-gray-500 text-xs">
-            <%= Calendar.strftime(game.created_at, "%I:%M%P") %>
-          </span>
-          <.user_avatar user={game.owner} size="s">
-            <:slot_after>
-              <%= game.owner.username %>
-            </:slot_after>
-          </.user_avatar>
-        <% end %>
-      </div>
+  <div class="grid grid-cols-[minmax(30%,auto)_1fr_minmax(20%,auto)] gap-4">
+    <div class="flex flex-1 flex-col gap-6 p-4 rounded-xl shadow-xl">
+      <h2 class="text-2xl">New Game</h2>
+      <.simple_form
+        for={@form}
+        phx-change="validate"
+        phx-submit="save"
+        class="flex flex-col gap-2"
+      >
+        <.input field={@form[:title]} label="Title" required />
+        <.button class="w-full">Save</.button>
+      </.simple_form>
     </div>
 
-    <div class="flex flex-col gap-6">
-      <h2 class="text-2xl">Users</h2>
-      <div class="flex justify-start gap-4">
-        <%= for {username, user} <- @users do %>
-          <.user_avatar user={user} size="xl">
-            <:slot_after>
-              <%= username %>
-            </:slot_after>
-          </.user_avatar>
-        <% end %>
+    <%= if Enum.count(@games) > 0 do %>
+      <div class="flex flex-1 flex-col gap-6 p-4 box-border rounded-xl shadow-xl">
+        <h2 class="text-2xl">Games</h2>
+        <div class="grid grid-cols-[1fr_auto_auto] gap-2 items-center">
+          <%= for game <- @games do %>
+            <.link
+              navigate={~p"/games/#{game.id}"}
+              class="underline underline-offset-2 font-bold text-lg"
+            >
+              <%= game.title %>
+            </.link>
+            <.user_avatar user={game.owner} size="s">
+              <:slot_after>
+                <%= game.owner.username %>
+              </:slot_after>
+            </.user_avatar>
+            <span class="text-gray-500 text-xs">
+              <%= Calendar.strftime(game.created_at, "%I:%M%P") %>
+            </span>
+          <% end %>
+        </div>
       </div>
-    </div>
+    <% end %>
+
+    <%= if Enum.count(@users) > 0 do %>
+      <div class="flex flex-col gap-6 p-4 rounded-xl shadow-xl">
+        <h2 class="text-2xl">
+          Users <span class="text-gray-400 text-xs">in lobby</span>
+        </h2>
+        <div class="flex justify-start gap-4">
+          <%= for {username, user} <- @users do %>
+            <.user_avatar user={user} size="m">
+              <:slot_after>
+                <%= username %>
+              </:slot_after>
+            </.user_avatar>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
   </div>
 </.layout>
