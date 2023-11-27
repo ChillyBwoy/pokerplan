@@ -7,6 +7,7 @@ defmodule PokerplanWeb.LobbyLive do
   alias Pokerplan.Game.Server, as: GameServer
   alias Pokerplan.Game.State, as: GameState
   alias Pokerplan.Game.Supervisor, as: GameSupervisor
+  alias Pokerplan.Game.NewGameForm
   alias PokerplanWeb.Presence
 
   @presence_topic {:lobby}
@@ -16,12 +17,16 @@ defmodule PokerplanWeb.LobbyLive do
     PubSub.subscribe(Pokerplan.PubSub, Presence.get_topic(@presence_topic))
     PubSub.subscribe(Pokerplan.PubSub, GameServer.get_topic())
 
+    form =
+      %NewGameForm{}
+      |> NewGameForm.changeset(%{})
+      |> to_form(as: :game_form)
+
     {:ok,
      socket
      |> assign(:users, Presence.user_list(@presence_topic))
      |> assign(:games, GameSupervisor.list_games())
-     |> assign(:errors, %{})
-     |> assign(:form, create_form())}
+     |> assign(:form, form)}
   end
 
   def handle_info(
@@ -40,13 +45,19 @@ defmodule PokerplanWeb.LobbyLive do
     {:noreply, assign(socket, :games, GameSupervisor.list_games())}
   end
 
-  def handle_event("validate", form = %{"title" => _title}, socket) do
-    {:noreply, socket |> assign(:errors, validate_form(form))}
+  def handle_event("validate", %{"game_form" => params}, socket) do
+    form =
+      %NewGameForm{}
+      |> NewGameForm.changeset(params)
+      |> Map.put(:action, :validate)
+      |> to_form(as: :game_form)
+
+    {:noreply, assign(socket, form: form)}
   end
 
   def handle_event(
         "save",
-        %{"title" => title},
+        %{"game_form" => %{"title" => title}},
         socket = %{assigns: %{current_user: %User{} = current_user}}
       ) do
     case GameSupervisor.start_new_game(%{title: title, owner: current_user}) do
@@ -55,32 +66,6 @@ defmodule PokerplanWeb.LobbyLive do
 
       {:error, reason} ->
         {:noreply, socket |> put_flash(:error, reason)}
-    end
-  end
-
-  defp create_form() do
-    %{"title" => ""} |> to_form()
-  end
-
-  defp validate_form(form) do
-    errors =
-      %{}
-      |> validate_field(form, :title)
-
-    if map_size(errors) == 0 do
-      {:ok}
-    else
-      {:error, errors}
-    end
-  end
-
-  defp validate_field(%{} = errors, form, field) do
-    cond do
-      Map.get(form, Atom.to_string(field), "") == "" ->
-        Map.put(errors, field, ["can't be blank"])
-
-      true ->
-        errors
     end
   end
 end
