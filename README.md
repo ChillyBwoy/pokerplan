@@ -1,18 +1,27 @@
 # Pokerplan
 
-To start your Phoenix server:
+https://pokerplan.fly.dev
 
-  * Run `mix setup` to install and setup dependencies
-  * Start Phoenix endpoint with `mix phx.server` or inside IEx with `iex -S mix phx.server`
+## Requirements
 
-Now you can visit [`localhost:4000`](http://localhost:4000) from your browser.
+Create a `Client ID` and a `Client Secret` for GitHub https://github.com/settings/developers
 
-Ready to run in production? Please [check our deployment guides](https://hexdocs.pm/phoenix/deployment.html).
+Create a secret token. You can use any string or generate one using the following command:
 
-## Learn more
+```sh
+mix phx.gen.secret
+```
 
-  * Official website: https://www.phoenixframework.org/
-  * Guides: https://hexdocs.pm/phoenix/overview.html
-  * Docs: https://hexdocs.pm/phoenix
-  * Forum: https://elixirforum.com/c/phoenix-forum
-  * Source: https://github.com/phoenixframework/phoenix
+Create a `.env` file and add your token and GitHub credentials to it.
+
+```bash
+export AUTH_TOKEN_SECRET=...
+export GITHUB_CLIENT_ID=...
+export GITHUB_CLIENT_SECRET=...
+```
+
+Run `source .env` to load the environment variables.
+
+Run `mix deps.get` to install the dependencies.
+
+Run `mix phx.server` to start the server.
