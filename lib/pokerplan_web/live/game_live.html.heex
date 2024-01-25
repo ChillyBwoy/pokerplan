@@ -2,11 +2,13 @@
   <h1 class="text-4xl text-center"><%= @game_state.title %></h1>
 
   <div class="flex justify-center items-center">
-    <%= if @game_state.show_results do %>
-      <.button phx-click="reset">Reset</.button>
-    <% else %>
-      <%= if map_size(@game_state.votes) > 0 do %>
-        <.button phx-click="reveal" class="bg-blue-400">Reveal cards</.button>
+    <%= if @game_state.owner.username == @current_user.username do %>
+      <%= if @game_state.show_results do %>
+        <.button phx-click="reset">Reset</.button>
+      <% else %>
+        <%= if map_size(@game_state.votes) > 0 do %>
+          <.button phx-click="reveal" class="bg-blue-400">Reveal cards</.button>
+        <% end %>
       <% end %>
     <% end %>
   </div>
