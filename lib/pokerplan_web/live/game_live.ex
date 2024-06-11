@@ -60,7 +60,10 @@ defmodule PokerplanWeb.GameLive do
         socket = %{assigns: %{game_state: %GameState{} = game_state}}
       ) do
     if end_game_state.id == game_state.id do
-      {:noreply, socket |> put_flash(:info, "Room has been closed") |> redirect(to: ~p"/")}
+      {:noreply,
+       socket
+       |> put_flash(:info, "Room has been closed")
+       |> redirect(to: ~p"/")}
     else
       {:noreply, socket}
     end
@@ -77,14 +80,15 @@ defmodule PokerplanWeb.GameLive do
           }
         }
       ) do
+    next_game_state =
+      GameServer.dispatch({
+        :vote,
+        id: game_state.id, username: current_user.username, value: value
+      })
+
     {:noreply,
-     assign(
-       socket,
-       :game_state,
-       GameServer.dispatch(
-         {:vote, id: game_state.id, username: current_user.username, value: value}
-       )
-     )}
+     socket
+     |> assign(:game_state, next_game_state)}
   end
 
   def handle_event(
@@ -92,7 +96,8 @@ defmodule PokerplanWeb.GameLive do
         _unsigned_params,
         socket = %{assigns: %{game_state: %GameState{} = game_state}}
       ) do
-    {:noreply, assign(socket, :game_state, GameServer.dispatch({:reset, id: game_state.id}))}
+    next_game_state = GameServer.dispatch({:reset, id: game_state.id})
+    {:noreply, socket |> assign(:game_state, next_game_state)}
   end
 
   def handle_event(
@@ -100,7 +105,8 @@ defmodule PokerplanWeb.GameLive do
         _unsigned_params,
         socket = %{assigns: %{game_state: %GameState{} = game_state}}
       ) do
-    {:noreply, assign(socket, :game_state, GameServer.dispatch({:reveal, id: game_state.id}))}
+    next_game_state = GameServer.dispatch({:reveal, id: game_state.id})
+    {:noreply, socket |> assign(:game_state, next_game_state)}
   end
 
   @impl true

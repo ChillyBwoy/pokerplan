@@ -9,6 +9,7 @@ defmodule Pokerplan.Game.State do
             title: "",
             owner: %User{},
             show_results: false,
+            allow_reset: false,
             votes: %{},
             average: 0,
             results: %{},
