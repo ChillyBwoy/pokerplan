@@ -1,0 +1,14 @@
+<span class="flex items-center gap-2">
+  <span :if={@slot_before != []}>
+    {render_slot(@slot_before)}
+  </span>
+  <img
+    src={@user.avatar_url}
+    alt={@user.username}
+    title={@user.username}
+    class={["inline rounded-full border-2 border-blue-500", @class]}
+  />
+  <span :if={@slot_after != []}>
+    {render_slot(@slot_after)}
+  </span>
+</span>

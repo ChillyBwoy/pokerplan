@@ -16,22 +16,18 @@
     <%= if Enum.count(@games) > 0 do %>
       <div class="flex flex-1 flex-col gap-6 p-4 box-border rounded-xl shadow-xl">
         <h2 class="text-2xl">Games</h2>
-        <div class="grid grid-cols-[1fr_auto_auto] gap-2 items-center">
+        <div class="grid grid-cols-[auto_1fr_auto] gap-2 items-center">
           <%= for game <- @games do %>
+            <.user_avatar user={game.owner} class="size-8" />
             <.link
               navigate={~p"/games/#{game.id}"}
               class="underline underline-offset-2 font-bold text-lg"
             >
               {game.title}
             </.link>
-            <.user_avatar user={game.owner} size="s">
-              <:slot_after>
-                {game.owner.username}
-              </:slot_after>
-            </.user_avatar>
-            <span class="text-gray-500 text-xs">
+            <div class="text-gray-500 text-xs">
               {Calendar.strftime(game.created_at, "%I:%M%P")}
-            </span>
+            </div>
           <% end %>
         </div>
       </div>
@@ -44,7 +40,7 @@
         </h2>
         <div class="flex justify-start gap-4">
           <%= for {username, user} <- @users do %>
-            <.user_avatar user={user} size="m">
+            <.user_avatar user={user} class="size-8">
               <:slot_after>
                 {username}
               </:slot_after>
