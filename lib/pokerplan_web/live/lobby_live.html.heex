@@ -22,15 +22,15 @@
               navigate={~p"/games/#{game.id}"}
               class="underline underline-offset-2 font-bold text-lg"
             >
-              <%= game.title %>
+              {game.title}
             </.link>
             <.user_avatar user={game.owner} size="s">
               <:slot_after>
-                <%= game.owner.username %>
+                {game.owner.username}
               </:slot_after>
             </.user_avatar>
             <span class="text-gray-500 text-xs">
-              <%= Calendar.strftime(game.created_at, "%I:%M%P") %>
+              {Calendar.strftime(game.created_at, "%I:%M%P")}
             </span>
           <% end %>
         </div>
@@ -46,7 +46,7 @@
           <%= for {username, user} <- @users do %>
             <.user_avatar user={user} size="m">
               <:slot_after>
-                <%= username %>
+                {username}
               </:slot_after>
             </.user_avatar>
           <% end %>

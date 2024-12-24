@@ -17,7 +17,7 @@ defmodule Pokerplan.Game.State do
             created_at: DateTime.utc_now()
 
   def new(%{title: title, owner: owner = %User{}}) do
-    id = UUID.uuid4(:hex)
+    id = Ecto.UUID.generate()
 
     %State{
       id: id,

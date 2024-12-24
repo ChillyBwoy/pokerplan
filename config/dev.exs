@@ -1,5 +1,12 @@
 import Config
 
+# Configure your database
+config :pokerplan, Pokerplan.Repo,
+  database: Path.expand("../pokerplan_dev.db", __DIR__),
+  pool_size: 5,
+  stacktrace: true,
+  show_sensitive_data_on_connection_error: true
+
 # For development, we disable any cache and enable
 # debugging and code reloading.
 #
@@ -13,10 +20,10 @@ config :pokerplan, PokerplanWeb.Endpoint,
   check_origin: false,
   code_reloader: true,
   debug_errors: true,
-  secret_key_base: "7xduG2tdxCCCBFwL6pXpSRVkdk3bZvZ3gwj9fmr3VtEMuPmZtV8k+Anf870Q5Nnt",
+  secret_key_base: "ry4EFPq6C3KD6mpqj9euQkzuALPDIJjhupb51iEzfJ3Ob23KEy63d5rvJ5x7Oqyr",
   watchers: [
-    esbuild: {Esbuild, :install_and_run, [:default, ~w(--sourcemap=inline --watch)]},
-    tailwind: {Tailwind, :install_and_run, [:default, ~w(--watch)]}
+    esbuild: {Esbuild, :install_and_run, [:pokerplan, ~w(--sourcemap=inline --watch)]},
+    tailwind: {Tailwind, :install_and_run, [:pokerplan, ~w(--watch)]}
   ]
 
 # ## SSL Support
@@ -46,7 +53,7 @@ config :pokerplan, PokerplanWeb.Endpoint,
 config :pokerplan, PokerplanWeb.Endpoint,
   live_reload: [
     patterns: [
-      ~r"priv/static/.*(js|css|png|jpeg|jpg|gif|svg)$",
+      ~r"priv/static/(?!uploads/).*(js|css|png|jpeg|jpg|gif|svg)$",
       ~r"priv/gettext/.*(po)$",
       ~r"lib/pokerplan_web/(controllers|live|components)/.*(ex|heex)$"
     ]
@@ -64,3 +71,12 @@ config :phoenix, :stacktrace_depth, 20
 
 # Initialize plugs at runtime for faster development compilation
 config :phoenix, :plug_init_mode, :runtime
+
+config :phoenix_live_view,
+  # Include HEEx debug annotations as HTML comments in rendered markup
+  debug_heex_annotations: true,
+  # Enable helpful, but potentially expensive runtime checks
+  enable_expensive_runtime_checks: true
+
+# Disable swoosh api client as it is only required for production adapters.
+config :swoosh, :api_client, false

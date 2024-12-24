@@ -42,8 +42,9 @@ defmodule PokerplanWeb do
         formats: [:html, :json],
         layouts: [html: PokerplanWeb.Layouts]
 
+      use Gettext, backend: PokerplanWeb.Gettext
+
       import Plug.Conn
-      import PokerplanWeb.Gettext
 
       unquote(verified_routes())
     end
@@ -82,12 +83,14 @@ defmodule PokerplanWeb do
 
   defp html_helpers do
     quote do
+      # Translation
+      use Gettext, backend: PokerplanWeb.Gettext
+
       # HTML escaping functionality
       import Phoenix.HTML
-      # Core UI components and translation
+      # Core UI components
       import PokerplanWeb.CoreComponents
       import PokerplanWeb.UserComponents
-      import PokerplanWeb.Gettext
 
       # Shortcut for generating JS commands
       alias Phoenix.LiveView.JS
@@ -107,7 +110,7 @@ defmodule PokerplanWeb do
   end
 
   @doc """
-  When used, dispatch to the appropriate controller/view/etc.
+  When used, dispatch to the appropriate controller/live_view/etc.
   """
   defmacro __using__(which) when is_atom(which) do
     apply(__MODULE__, which, [])

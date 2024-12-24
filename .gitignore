@@ -35,6 +35,10 @@ pokerplan-*.tar
 npm-debug.log
 /assets/node_modules/
 
+# Database files
+*.db
+*.db-*
+
 .vscode
 .DS_Store
 .env

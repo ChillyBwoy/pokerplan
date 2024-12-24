@@ -1,5 +1,5 @@
 <.layout class="grid grid-rows-[auto_100px_1fr_auto]">
-  <h1 class="text-4xl text-center"><%= @game_state.title %></h1>
+  <h1 class="text-4xl text-center">{@game_state.title}</h1>
 
   <div class="flex justify-center items-center">
     <%= if @game_state.owner.username == @current_user.username do %>
@@ -18,7 +18,7 @@
       <div class="flex flex-col gap-2 justify-center items-center w-1/3 p-4 box-border">
         <.user_avatar user={user} size="s">
           <:slot_after>
-            <%= username %>
+            {username}
           </:slot_after>
         </.user_avatar>
         <.playing_card
@@ -27,7 +27,7 @@
           state={if @game_state.show_results, do: "done", else: "idle"}
         >
           <%= if @game_state.show_results && @game_state.votes[username] do %>
-            <%= Enum.at(@choices, @game_state.votes[username]).label %>
+            {Enum.at(@choices, @game_state.votes[username]).label}
           <% end %>
         </.playing_card>
       </div>
@@ -38,14 +38,14 @@
     <div class="flex gap-8 justify-center">
       <div class="flex flex-col gap-4 justify-center items-center">
         <h5 class="text-2xl">Average</h5>
-        <h3 class="text-3xl font-bold"><%= @game_state.average %></h3>
+        <h3 class="text-3xl font-bold">{@game_state.average}</h3>
       </div>
       <div class="flex gap-4">
         <%= for {vote, amount} <- @game_state.results do %>
           <div class="flex flex-col gap-2">
-            <h5 class="font-bold text-xl text-center"><%= amount %></h5>
+            <h5 class="font-bold text-xl text-center">{amount}</h5>
             <.playing_card size="m" flipped state="idle">
-              <%= Enum.at(@choices, vote).label %>
+              {Enum.at(@choices, vote).label}
             </.playing_card>
           </div>
         <% end %>
@@ -60,7 +60,7 @@
           state={if @game_state.votes[@current_user.username] == idx, do: "done", else: "idle"}
           phx-click={!@game_state.show_results && JS.push("vote", value: %{value: idx})}
         >
-          <%= choice.label %>
+          {choice.label}
         </.playing_card>
       <% end %>
     </div>

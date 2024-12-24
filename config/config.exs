@@ -7,20 +7,34 @@
 # General application configuration
 import Config
 
+config :pokerplan,
+  ecto_repos: [Pokerplan.Repo],
+  generators: [timestamp_type: :utc_datetime]
+
 # Configures the endpoint
 config :pokerplan, PokerplanWeb.Endpoint,
   url: [host: "localhost"],
+  adapter: Bandit.PhoenixAdapter,
   render_errors: [
     formats: [html: PokerplanWeb.ErrorHTML, json: PokerplanWeb.ErrorJSON],
     layout: false
   ],
   pubsub_server: Pokerplan.PubSub,
-  live_view: [signing_salt: "Z4NqTHhY"]
+  live_view: [signing_salt: "oG0SmVXX"]
+
+# Configures the mailer
+#
+# By default it uses the "Local" adapter which stores the emails
+# locally. You can see the emails in your browser, at "/dev/mailbox".
+#
+# For production it's recommended to configure a different adapter
+# at the `config/runtime.exs`.
+config :pokerplan, Pokerplan.Mailer, adapter: Swoosh.Adapters.Local
 
 # Configure esbuild (the version is required)
 config :esbuild,
   version: "0.17.11",
-  default: [
+  pokerplan: [
     args:
       ~w(js/app.js --bundle --target=es2017 --outdir=../priv/static/assets --external:/fonts/* --external:/images/*),
     cd: Path.expand("../assets", __DIR__),
@@ -29,8 +43,8 @@ config :esbuild,
 
 # Configure tailwind (the version is required)
 config :tailwind,
-  version: "3.3.2",
-  default: [
+  version: "3.4.3",
+  pokerplan: [
     args: ~w(
       --config=tailwind.config.js
       --input=css/app.css

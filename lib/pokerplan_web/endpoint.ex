@@ -7,11 +7,13 @@ defmodule PokerplanWeb.Endpoint do
   @session_options [
     store: :cookie,
     key: "_pokerplan_key",
-    signing_salt: "S7zOLivy",
+    signing_salt: "JzrnKPMu",
     same_site: "Lax"
   ]
 
-  socket "/live", Phoenix.LiveView.Socket, websocket: [connect_info: [session: @session_options]]
+  socket "/live", Phoenix.LiveView.Socket,
+    websocket: [connect_info: [session: @session_options]],
+    longpoll: [connect_info: [session: @session_options]]
 
   # Serve at "/" the static files from "priv/static" directory.
   #
@@ -29,6 +31,7 @@ defmodule PokerplanWeb.Endpoint do
     socket "/phoenix/live_reload/socket", Phoenix.LiveReloader.Socket
     plug Phoenix.LiveReloader
     plug Phoenix.CodeReloader
+    plug Phoenix.Ecto.CheckRepoStatus, otp_app: :pokerplan
   end
 
   plug Phoenix.LiveDashboard.RequestLogger,

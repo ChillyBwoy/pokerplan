@@ -8,17 +8,21 @@ defmodule Pokerplan.Application do
   @impl true
   def start(_type, _args) do
     children = [
-      # Start the Telemetry supervisor
       PokerplanWeb.Telemetry,
+      Pokerplan.Repo,
+      {Ecto.Migrator,
+       repos: Application.fetch_env!(:pokerplan, :ecto_repos), skip: skip_migrations?()},
+      {DNSCluster, query: Application.get_env(:pokerplan, :dns_cluster_query) || :ignore},
       Pokerplan.Game.Supervisor,
       {Registry, keys: :unique, name: Pokerplan.Registry},
-      # Start the PubSub system
       {Phoenix.PubSub, name: Pokerplan.PubSub},
-      PokerplanWeb.Presence,
-      # Start the Endpoint (http/https)
-      PokerplanWeb.Endpoint
+      # Start the Finch HTTP client for sending emails
+      {Finch, name: Pokerplan.Finch},
       # Start a worker by calling: Pokerplan.Worker.start_link(arg)
-      # {Pokerplan.Worker, arg}
+      # {Pokerplan.Worker, arg},
+      # Start to serve requests, typically the last entry
+      PokerplanWeb.Presence,
+      PokerplanWeb.Endpoint
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
@@ -33,5 +37,10 @@ defmodule Pokerplan.Application do
   def config_change(changed, _new, removed) do
     PokerplanWeb.Endpoint.config_change(changed, removed)
     :ok
+  end
+
+  defp skip_migrations?() do
+    # By default, sqlite migrations are run when using a release
+    System.get_env("RELEASE_NAME") != nil
   end
 end

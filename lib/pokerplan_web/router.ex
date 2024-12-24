@@ -23,6 +23,14 @@ defmodule PokerplanWeb.Router do
     get "/", PageController, :home
   end
 
+  scope "/auth", PokerplanWeb do
+    pipe_through :browser
+
+    get "/signout", AuthController, :signout
+    get "/signin/:provider", AuthController, :request
+    get "/signin/:provider/callback", AuthController, :callback
+  end
+
   scope "/games", PokerplanWeb do
     pipe_through [:browser, :require_authenticated_user]
 
@@ -33,20 +41,12 @@ defmodule PokerplanWeb.Router do
     end
   end
 
-  scope "/auth", PokerplanWeb do
-    pipe_through :browser
-
-    get "/signout", AuthController, :signout
-    get "/signin/:provider", AuthController, :request
-    get "/signin/:provider/callback", AuthController, :callback
-  end
-
   # Other scopes may use custom stacks.
   # scope "/api", PokerplanWeb do
   #   pipe_through :api
   # end
 
-  # Enable LiveDashboard in development
+  # Enable LiveDashboard and Swoosh mailbox preview in development
   if Application.compile_env(:pokerplan, :dev_routes) do
     # If you want to use the LiveDashboard in production, you should put
     # it behind authentication and allow only admins to access it.
@@ -59,6 +59,7 @@ defmodule PokerplanWeb.Router do
       pipe_through :browser
 
       live_dashboard "/dashboard", metrics: PokerplanWeb.Telemetry
+      forward "/mailbox", Plug.Swoosh.MailboxPreview
     end
   end
 end
