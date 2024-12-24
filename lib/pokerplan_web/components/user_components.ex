@@ -22,4 +22,8 @@ defmodule PokerplanWeb.UserComponents do
   attr :class, :string, default: nil
   slot :inner_block
   def layout(assigns)
+
+  attr :title, :string, required: true
+  slot :inner_block
+  def card(assigns)
 end
