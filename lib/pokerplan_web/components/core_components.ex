@@ -202,7 +202,7 @@ defmodule PokerplanWeb.CoreComponents do
   def simple_form(assigns) do
     ~H"""
     <.form :let={f} for={@for} as={@as} {@rest}>
-      <div class="flex flex-col gap-4 bg-white">
+      <div class="flex flex-col gap-4">
         {render_slot(@inner_block, f)}
         <div :for={action <- @actions} class="flex items-center justify-end gap-4">
           {render_slot(action, f)}

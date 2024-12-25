@@ -1,6 +1,7 @@
 defmodule PokerplanWeb.UserComponents do
   use Phoenix.Component
   alias Pokerplan.Auth.User
+  use Gettext, backend: PokerplanWeb.Gettext
 
   embed_templates "user_components/*"
 
