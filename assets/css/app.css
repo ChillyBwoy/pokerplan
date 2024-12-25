@@ -3,3 +3,72 @@
 @import "tailwindcss/utilities";
 
 /* This file is for your main application CSS */
+@layer base {
+  .theme-light {
+    --background: 255, 255, 255;
+    --form-background: 250, 250, 250;
+
+    --primary: 29, 78, 216;
+    --primary-light: 96, 165, 250;
+    --primary-dark: 30, 58, 138;
+
+    --secondary: 120, 113, 108;
+    --secondary-light: 214, 211, 209;
+    --secondary-dark: 51, 65, 85;
+
+    --success: 132, 204, 22;
+    --success-light: 217, 249, 157;
+    --success-dark: 77, 124, 15;
+
+    --danger: 239, 68, 68;
+    --danger-light: 254, 202, 202;
+    --danger-dark: 185, 28, 28;
+
+    --warning: 245, 158, 11;
+    --warning-light: 253, 230, 138;
+    --warning-dark: 180, 83, 9;
+
+    --info: 96, 165, 250;
+    --info-light: 219, 234, 254;
+    --info-dark: 59, 130, 246;
+  }
+
+  .theme-dark {
+    --background: 45, 45, 45;
+    --form-background: 40, 40, 40;
+
+    --primary: 29, 78, 216;
+    --primary-light: 96, 165, 250;
+    --primary-dark: 64, 64, 64;
+
+    --secondary: 120, 113, 108;
+    --secondary-light: 117, 117, 117;
+    --secondary-dark: 191, 191, 191;
+
+    --success: 132, 204, 22;
+    --success-light: 217, 249, 157;
+    --success-dark: 77, 124, 15;
+
+    --danger: 239, 68, 68;
+    --danger-light: 254, 202, 202;
+    --danger-dark: 185, 28, 28;
+
+    --warning: 245, 158, 11;
+    --warning-light: 253, 230, 138;
+    --warning-dark: 180, 83, 9;
+
+    --info: 96, 165, 250;
+    --info-light: 219, 234, 254;
+    --info-dark: 59, 130, 246;
+  }
+
+  h1 {
+    @apply text-2xl;
+  }
+  h2 {
+    @apply text-xl;
+  }
+  h3 {
+    @apply text-lg;
+  }
+}

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="[scrollbar-gutter:stable] h-full bg-white antialiased">
+<html lang="en" class="[scrollbar-gutter:stable] h-full antialiased">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -11,46 +11,48 @@
     <script defer phx-track-static type="text/javascript" src={~p"/assets/app.js"}>
     </script>
   </head>
-  <body class="h-full box-border pt-20">
-    <header class="w-full">
-      <nav class="px-8 h-20 flex justify-between fixed top-0 left-0 right-0">
+  <body class="h-full bg-background theme-light grid grid-rows-[auto_1fr]">
+    <header class="w-full shadow-md py-4 px-6">
+      <nav class="flex justify-between">
         <ul class="flex gap-8">
           <li class="flex items-center">
-            <.link navigate={~p"/"} class="font-mono text-xl">
-              <.icon name="hero-home-solid" class="w-8 h-8 text-blue-600" />
+            <.link navigate={~p"/"} class="text-lg text-primary hover:text-primary-light">
+              <.icon name="hero-home-solid" class="size-8" />
             </.link>
           </li>
           <li class="flex items-center">
-            <.link
-              navigate={~p"/games"}
-              class="text-lg flex items-center justify-center rounded-lg px-2 py-1 text-slate-700 hover:bg-slate-100 hover:text-slate-900"
-            >
-              Games
+            <.link patch={~p"/games"} class="text-lg text-primary hover:text-primary-light">
+              Lobby
             </.link>
           </li>
         </ul>
 
         <ul class="flex gap-8">
           <li class="flex items-center gap-2">
-            <%= if @conn.assigns[:current_user] do %>
-              <.link
-                navigate={~p"/auth/signout"}
-                class="text-lg flex items-center justify-center rounded-lg px-2 py-1 text-slate-700 hover:bg-slate-100 hover:text-slate-900"
-              >
-                Signout
-              </.link>
+            <!--
+            <.button>
+              <.icon name="hero-moon" class="size-6" />
+              <.icon name="hero-sun" class="size-6" />
+            </.button>
+            -->
 
+            <%= if @conn.assigns[:current_user] do %>
               <.link
                 href={"https://github.com/#{@conn.assigns[:current_user].username}"}
                 target="_blank"
-                class="font-mono text-xl"
               >
-                <.user_avatar user={@conn.assigns[:current_user]} size="xl" />
+                <.user_avatar user={@conn.assigns[:current_user]} class="size-10" />
+              </.link>
+              <.link
+                navigate={~p"/auth/signout"}
+                class="text-lg text-primary hover:text-primary-light"
+              >
+                Signout
               </.link>
             <% else %>
               <.link
                 navigate={~p"/auth/signin/github"}
-                class="text-lg flex items-center justify-center rounded-full py-2 px-4 focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 bg-blue-600 text-white hover:text-slate-100 hover:bg-blue-500 active:bg-blue-800 active:text-blue-100 focus-visible:outline-blue-600"
+                class="text-lg text-primary hover:text-primary-light"
               >
                 Signin
               </.link>

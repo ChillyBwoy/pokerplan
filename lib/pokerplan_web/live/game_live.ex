@@ -74,26 +74,20 @@ defmodule PokerplanWeb.GameLive do
         "vote",
         %{"value" => value},
         socket = %{
-          assigns: %{
-            current_user: %User{} = current_user,
-            game_state: %GameState{} = game_state
-          }
+          assigns: %{current_user: %User{} = current_user, game_state: %GameState{} = game_state}
         }
       ) do
     next_game_state =
-      GameServer.dispatch({
-        :vote,
-        id: game_state.id, username: current_user.username, value: value
-      })
+      GameServer.dispatch(
+        {:vote, id: game_state.id, username: current_user.username, value: value}
+      )
 
-    {:noreply,
-     socket
-     |> assign(:game_state, next_game_state)}
+    {:noreply, socket |> assign(:game_state, next_game_state)}
   end
 
   def handle_event(
         "reset",
-        _unsigned_params,
+        _params,
         socket = %{assigns: %{game_state: %GameState{} = game_state}}
       ) do
     next_game_state = GameServer.dispatch({:reset, id: game_state.id})
@@ -102,7 +96,7 @@ defmodule PokerplanWeb.GameLive do
 
   def handle_event(
         "reveal",
-        _unsigned_params,
+        _params,
         socket = %{assigns: %{game_state: %GameState{} = game_state}}
       ) do
     next_game_state = GameServer.dispatch({:reveal, id: game_state.id})
@@ -113,10 +107,7 @@ defmodule PokerplanWeb.GameLive do
   def terminate(
         _reason,
         socket = %{
-          assigns: %{
-            current_user: %User{} = current_user,
-            game_state: %GameState{} = game_state
-          }
+          assigns: %{current_user: %User{} = current_user, game_state: %GameState{} = game_state}
         }
       ) do
     if connected?(socket) do

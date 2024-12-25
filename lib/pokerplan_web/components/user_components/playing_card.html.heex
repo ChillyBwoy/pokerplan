@@ -1,0 +1,17 @@
+<button
+  class={[
+    "flex items-center justify-center text-white rounded-lg border-2 box-border shadow-lg transition-transform font-bold",
+    @size == "m" && "w-16 h-24 text-3xl",
+    @size == "l" && "w-24 h-36 text-4xl",
+    @active && "hover:scale-110 hover:-translate-y-2 cursor-pointer",
+    !@active && "cursor-default",
+    !@flipped && @state == "idle" && "bg-gray-400 border-gray-500",
+    @flipped && @state == "idle" && "bg-blue-400 border-blue-500",
+    !@flipped && @state == "done" && "bg-green-400 border-green-500",
+    @flipped && @state == "done" && "bg-green-400 border-green-500",
+    @class
+  ]}
+  {@rest}
+>
+  {render_slot(@inner_block)}
+</button>
