@@ -19,22 +19,22 @@ defmodule PokerplanWeb.GameLive do
 
   @impl true
   def handle_params(
-        %{"game_id" => id},
+        %{"game_id" => game_id},
         _uri,
         socket = %{assigns: %{current_user: %User{} = current_user}}
       ) do
-    if GameServer.active?(id) do
+    if GameServer.active?(game_id) do
       if connected?(socket) do
-        {:ok, _} = Presence.track_user(%{game_id: id}, current_user)
-        :ok = PubSub.subscribe(Pokerplan.PubSub, Presence.get_topic(%{game_id: id}))
-        :ok = PubSub.subscribe(Pokerplan.PubSub, GameServer.get_topic(id))
+        {:ok, _} = Presence.track_user({:game, game_id}, current_user)
+        :ok = PubSub.subscribe(Pokerplan.PubSub, Presence.get_topic({:game, game_id}))
+        :ok = PubSub.subscribe(Pokerplan.PubSub, GameServer.get_topic(game_id))
         :ok = PubSub.subscribe(Pokerplan.PubSub, GameServer.get_topic())
       end
 
       {:noreply,
        socket
-       |> assign(:users, Presence.user_list(%{game_id: id}))
-       |> assign(:game_state, GameServer.current(id))}
+       |> assign(:users, Presence.user_list({:game, game_id}))
+       |> assign(:game_state, GameServer.current(game_id))}
     else
       {:noreply, socket |> put_flash(:error, "Room not found") |> redirect(to: ~p"/")}
     end
@@ -111,13 +111,13 @@ defmodule PokerplanWeb.GameLive do
         }
       ) do
     if connected?(socket) do
-      Presence.untrack_user(%{game_id: game_state.id}, current_user.username)
+      Presence.untrack_user({:game, game_state.id}, current_user.username)
     end
 
     if GameServer.active?(game_state.id) do
       GameServer.dispatch({:player_leave, id: game_state.id, username: current_user.username})
     end
 
-    PubSub.unsubscribe(Pokerplan.PubSub, Presence.get_topic(%{game_id: game_state.id}))
+    PubSub.unsubscribe(Pokerplan.PubSub, Presence.get_topic({:game, game_state.id}))
   end
 end

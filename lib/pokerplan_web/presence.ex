@@ -5,7 +5,10 @@ defmodule PokerplanWeb.Presence do
 
   alias Pokerplan.Auth.User
 
-  def get_topic(%{game_id: id}), do: "presence:game:#{id}"
+  def get_topic({:game, game_id}) when is_binary(game_id) do
+    "presence:game:#{game_id}"
+  end
+
   def get_topic({:lobby}), do: "presence:lobby"
 
   def user_list(topic) do
