@@ -13,9 +13,9 @@ defmodule PokerplanWeb.LobbyLive do
   @presence_topic {:lobby}
 
   def mount(_params, _session, socket = %{assigns: %{current_user: %User{} = user}}) do
-    Presence.track_user(@presence_topic, user)
-    PubSub.subscribe(Pokerplan.PubSub, Presence.get_topic(@presence_topic))
-    PubSub.subscribe(Pokerplan.PubSub, GameServer.get_topic())
+    {:ok, _} = Presence.track_user(@presence_topic, user)
+    :ok = PubSub.subscribe(Pokerplan.PubSub, Presence.get_topic(@presence_topic))
+    :ok = PubSub.subscribe(Pokerplan.PubSub, GameServer.get_topic())
 
     form =
       %NewGameForm{}

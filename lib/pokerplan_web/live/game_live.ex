@@ -25,10 +25,10 @@ defmodule PokerplanWeb.GameLive do
       ) do
     if GameServer.active?(id) do
       if connected?(socket) do
-        Presence.track_user(%{game_id: id}, current_user)
-        PubSub.subscribe(Pokerplan.PubSub, Presence.get_topic(%{game_id: id}))
-        PubSub.subscribe(Pokerplan.PubSub, GameServer.get_topic(id))
-        PubSub.subscribe(Pokerplan.PubSub, GameServer.get_topic())
+        {:ok, _} = Presence.track_user(%{game_id: id}, current_user)
+        :ok = PubSub.subscribe(Pokerplan.PubSub, Presence.get_topic(%{game_id: id}))
+        :ok = PubSub.subscribe(Pokerplan.PubSub, GameServer.get_topic(id))
+        :ok = PubSub.subscribe(Pokerplan.PubSub, GameServer.get_topic())
       end
 
       {:noreply,

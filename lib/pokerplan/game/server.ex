@@ -13,7 +13,7 @@ defmodule Pokerplan.Game.Server do
 
   @impl true
   def init(%State{} = initial_state) do
-    PubSub.broadcast(Pokerplan.PubSub, get_topic(), {:game_start, initial_state})
+    :ok = PubSub.broadcast(Pokerplan.PubSub, get_topic(), {:game_start, initial_state})
     {:ok, initial_state, @timeout}
   end
 
@@ -83,7 +83,7 @@ defmodule Pokerplan.Game.Server do
 
   @impl true
   def handle_info(:timeout, state) do
-    PubSub.broadcast(Pokerplan.PubSub, get_topic(), {:game_end, state})
+    :ok = PubSub.broadcast(Pokerplan.PubSub, get_topic(), {:game_end, state})
     {:stop, :normal, state}
   end
 
@@ -94,7 +94,7 @@ defmodule Pokerplan.Game.Server do
   end
 
   defp reply(%State{} = state, {:notify}) do
-    PubSub.broadcast(Pokerplan.PubSub, get_topic(state.id), {:game_state, state})
+    :ok = PubSub.broadcast(Pokerplan.PubSub, get_topic(state.id), {:game_state, state})
     {:reply, state, state, @timeout}
   end
 

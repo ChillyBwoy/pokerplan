@@ -13,7 +13,9 @@ defmodule PokerplanWeb.Presence do
     map_joins(%{}, initial)
   end
 
-  def init(_opts), do: {:ok, %{}}
+  def init(_opts) do
+    {:ok, %{}}
+  end
 
   def track_user(topic, %User{} = user) do
     track(self(), get_topic(topic), user.username, %{
