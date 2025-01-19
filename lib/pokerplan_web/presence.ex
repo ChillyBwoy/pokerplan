@@ -3,18 +3,8 @@ defmodule PokerplanWeb.Presence do
     otp_app: :app,
     pubsub_server: Pokerplan.PubSub
 
+  alias Phoenix.PubSub
   alias Pokerplan.Auth.User
-
-  def get_topic({:game, game_id}) when is_binary(game_id) do
-    "presence:game:#{game_id}"
-  end
-
-  def get_topic({:lobby}), do: "presence:lobby"
-
-  def user_list(topic) do
-    initial = topic |> get_topic() |> list()
-    map_joins(%{}, initial)
-  end
 
   def init(_opts) do
     {:ok, %{}}
@@ -36,6 +26,27 @@ defmodule PokerplanWeb.Presence do
     |> map_leaves(leaves)
   end
 
+  def get_users_in_lobby() do
+    map_joins(%{}, get_topic({:lobby}) |> list())
+  end
+
+  def get_users_in_game(game_id) when is_binary(game_id) do
+    map_joins(%{}, get_topic({:game, game_id}) |> list())
+  end
+
+  def subscribe(topic) do
+    case PubSub.subscribe(Pokerplan.PubSub, get_topic(topic)) do
+      :ok -> :ok
+      {:error, _} -> {:error, "Failed to subscribe to presence"}
+    end
+  end
+
+  def unsubscribe(topic) do
+    PubSub.unsubscribe(Pokerplan.PubSub, get_topic(topic))
+  end
+
+  # Private API
+
   defp map_joins(target = %{}, joins) do
     Enum.reduce(joins, target, fn {username, %{metas: metas}}, target ->
       Map.put(target, username, hd(metas).user)
@@ -46,5 +57,11 @@ defmodule PokerplanWeb.Presence do
     Enum.reduce(leaves, target, fn {user_id, _}, target ->
       Map.delete(target, user_id)
     end)
+  end
+
+  defp get_topic({:lobby}), do: "presence:lobby"
+
+  defp get_topic({:game, game_id}) when is_binary(game_id) do
+    "presence:game:#{game_id}"
   end
 end

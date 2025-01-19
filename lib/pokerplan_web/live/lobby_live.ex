@@ -1,8 +1,6 @@
 defmodule PokerplanWeb.LobbyLive do
   use PokerplanWeb, :live_view
 
-  alias Phoenix.PubSub
-
   alias Pokerplan.Auth.User
   alias Pokerplan.Game.Server, as: GameServer
   alias Pokerplan.Game.State, as: GameState
@@ -10,12 +8,10 @@ defmodule PokerplanWeb.LobbyLive do
   alias Pokerplan.Game.NewGameForm
   alias PokerplanWeb.Presence
 
-  @presence_topic {:lobby}
-
-  def mount(_params, _session, socket = %{assigns: %{current_user: %User{} = user}}) do
-    {:ok, _} = Presence.track_user(@presence_topic, user)
-    :ok = PubSub.subscribe(Pokerplan.PubSub, Presence.get_topic(@presence_topic))
-    :ok = PubSub.subscribe(Pokerplan.PubSub, GameServer.get_topic())
+  def mount(_params, _session, socket = %{assigns: %{current_user: %User{} = current_user}}) do
+    {:ok, _} = Presence.track_user({:lobby}, current_user)
+    :ok = Presence.subscribe({:lobby})
+    :ok = GameServer.subscribe({:list})
 
     form =
       %NewGameForm{}
@@ -24,7 +20,7 @@ defmodule PokerplanWeb.LobbyLive do
 
     {:ok,
      socket
-     |> assign(:users, Presence.user_list(@presence_topic))
+     |> assign(:users, Presence.get_users_in_lobby())
      |> assign(:games, GameSupervisor.list_games())
      |> assign(:form, form)}
   end

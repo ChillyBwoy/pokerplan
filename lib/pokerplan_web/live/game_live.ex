@@ -1,8 +1,6 @@
 defmodule PokerplanWeb.GameLive do
   use PokerplanWeb, :live_view
 
-  alias Phoenix.PubSub
-
   alias Pokerplan.Game.Server, as: GameServer
   alias Pokerplan.Game.State, as: GameState
   alias Pokerplan.Game.VoteChoice, as: VoteChoice
@@ -26,14 +24,14 @@ defmodule PokerplanWeb.GameLive do
     if GameServer.active?(game_id) do
       if connected?(socket) do
         {:ok, _} = Presence.track_user({:game, game_id}, current_user)
-        :ok = PubSub.subscribe(Pokerplan.PubSub, Presence.get_topic({:game, game_id}))
-        :ok = PubSub.subscribe(Pokerplan.PubSub, GameServer.get_topic(game_id))
-        :ok = PubSub.subscribe(Pokerplan.PubSub, GameServer.get_topic())
+        :ok = Presence.subscribe({:game, game_id})
+        :ok = GameServer.subscribe({:list})
+        :ok = GameServer.subscribe({:game, game_id})
       end
 
       {:noreply,
        socket
-       |> assign(:users, Presence.user_list({:game, game_id}))
+       |> assign(:users, Presence.get_users_in_game(game_id))
        |> assign(:game_state, GameServer.current(game_id))}
     else
       {:noreply, socket |> put_flash(:error, "Room not found") |> redirect(to: ~p"/")}
@@ -118,6 +116,6 @@ defmodule PokerplanWeb.GameLive do
       GameServer.dispatch({:player_leave, id: game_state.id, username: current_user.username})
     end
 
-    PubSub.unsubscribe(Pokerplan.PubSub, Presence.get_topic({:game, game_state.id}))
+    Presence.unsubscribe({:game, game_state.id})
   end
 end
