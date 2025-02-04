@@ -13,19 +13,13 @@ defmodule Pokerplan.Game.Server do
 
   @impl true
   def init(%State{} = initial_state) do
-    PubSub.broadcast(Pokerplan.PubSub, get_topic(), {:game_start, initial_state})
+    :ok = PubSub.broadcast(Pokerplan.PubSub, get_topic({:list}), {:game_start, initial_state})
     {:ok, initial_state, @timeout}
   end
 
   def stop(id) do
     get_name(id) |> GenServer.stop()
   end
-
-  # Public API
-
-  def get_topic(id), do: "pubsub_poker_game_#{id}"
-
-  def get_topic(), do: "pubsub_poker"
 
   def active?(id) do
     case GenServer.whereis(get_name(id)) do
@@ -52,6 +46,13 @@ defmodule Pokerplan.Game.Server do
 
   def dispatch({:player_leave, id: id, username: username}) do
     get_name(id) |> GenServer.call({:player_leave, username})
+  end
+
+  def subscribe(topic) do
+    case PubSub.subscribe(Pokerplan.PubSub, get_topic(topic)) do
+      :ok -> :ok
+      {:error, _} -> {:error, "Failed to subscribe to game server"}
+    end
   end
 
   # Callbacks
@@ -83,7 +84,7 @@ defmodule Pokerplan.Game.Server do
 
   @impl true
   def handle_info(:timeout, state) do
-    PubSub.broadcast(Pokerplan.PubSub, get_topic(), {:game_end, state})
+    :ok = PubSub.broadcast(Pokerplan.PubSub, get_topic({:list}), {:game_end, state})
     {:stop, :normal, state}
   end
 
@@ -94,9 +95,15 @@ defmodule Pokerplan.Game.Server do
   end
 
   defp reply(%State{} = state, {:notify}) do
-    PubSub.broadcast(Pokerplan.PubSub, get_topic(state.id), {:game_state, state})
+    :ok = PubSub.broadcast(Pokerplan.PubSub, get_topic({:game, state.id}), {:game_state, state})
     {:reply, state, state, @timeout}
   end
 
-  defp get_name(id), do: {:via, Registry, {Pokerplan.Registry, "poker_game_#{id}"}}
+  defp get_name(game_id), do: {:via, Registry, {Pokerplan.Registry, "poker_game_#{game_id}"}}
+
+  defp get_topic({:game, game_id}) when is_binary(game_id) do
+    "games:game:#{game_id}"
+  end
+
+  defp get_topic({:list}), do: "games:list"
 end
