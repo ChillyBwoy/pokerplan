@@ -8,9 +8,16 @@ defmodule Pokerplan.Game.VoteChoice do
     :value
   ]
 
+  def cast_choices(input) when is_binary(input) do
+    case input do
+      "fibonacci" -> :fibonacci
+      _ -> nil
+    end
+  end
+
   def list({:fibonacci}) do
     [
-      %VoteChoice{value: 0, label: "?"},
+      %VoteChoice{value: :unsure, label: "?"},
       %VoteChoice{value: 1, label: "1"},
       %VoteChoice{value: 2, label: "2"},
       %VoteChoice{value: 3, label: "3"},
@@ -21,7 +28,15 @@ defmodule Pokerplan.Game.VoteChoice do
       %VoteChoice{value: 34, label: "34"},
       %VoteChoice{value: 55, label: "55"},
       %VoteChoice{value: 89, label: "89"},
-      %VoteChoice{value: 0, label: "☕️"}
+      %VoteChoice{value: :coffee_break, label: "☕️"}
     ]
+  end
+
+  def list(_) do
+    []
+  end
+
+  def choices do
+    [Fibonacci: :fibonacci]
   end
 end

@@ -9,8 +9,9 @@ defmodule Pokerplan.Game.Supervisor do
     DynamicSupervisor.start_link(__MODULE__, arg, name: __MODULE__)
   end
 
-  def start_new_game(%{title: title, owner: %User{} = owner}) do
-    initial_state = State.new(%{title: title, owner: owner})
+  def start_new_game(%{title: title, choices: choices, owner: %User{} = owner})
+      when is_binary(title) and is_atom(choices) do
+    initial_state = State.new(%{title: title, choices: choices, owner: owner})
 
     case DynamicSupervisor.start_child(__MODULE__, {GameServer, initial_state}) do
       {:ok, _pid} ->

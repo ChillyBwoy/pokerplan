@@ -3,7 +3,7 @@ defmodule Pokerplan.Game.State do
   alias Pokerplan.Game.State, as: State
   alias Pokerplan.Game.VoteChoice, as: VoteChoice
 
-  @enforce_keys [:title, :owner]
+  @enforce_keys [:title, :owner, :choices]
   @derive Jason.Encoder
   defstruct id: "",
             title: "",
@@ -11,52 +11,53 @@ defmodule Pokerplan.Game.State do
             show_results: false,
             allow_reset: false,
             votes: %{},
-            average: 0,
+            average: nil,
             results: %{},
-            choices: "fibonacci",
+            choices: nil,
             created_at: DateTime.utc_now()
 
-  def new(%{title: title, owner: owner = %User{}}) do
+  def new(%{title: title, choices: choices, owner: owner = %User{}})
+      when is_binary(title) and is_atom(choices) do
     id = Ecto.UUID.generate()
 
     %State{
       id: id,
       title: title,
       owner: owner,
+      choices: choices,
       created_at: DateTime.utc_now()
     }
   end
 
-  def voted?(%State{} = state, key) do
-    Map.has_key?(state.votes, key)
+  def voted?(%State{} = state, username) when is_binary(username) do
+    Map.has_key?(state.votes, username)
   end
 
-  def vote(%State{} = state, key, value) do
-    prev_vote = Map.get(state.votes, key)
+  def vote(%State{} = state, username, value) when is_binary(username) do
+    prev_vote = Map.get(state.votes, username)
 
-    if prev_vote == value do
-      %State{state | votes: Map.delete(state.votes, key)}
-    else
-      %State{state | votes: Map.put(state.votes, key, value)}
+    case value do
+      ^prev_vote -> %State{state | votes: Map.delete(state.votes, username)}
+      _ -> %State{state | votes: Map.put(state.votes, username, value)}
     end
   end
 
   def show(%State{} = state) do
-    # TODO: make this configurable
-    choices = VoteChoice.list({:fibonacci})
+    choices = VoteChoice.list({state.choices})
 
-    size =
+    vote_values =
       state.votes
       |> Map.values()
       |> Enum.filter(&(Enum.at(choices, &1).value != 0))
-      |> length()
+      |> Enum.filter(&(not is_atom(&1)))
 
-    sum =
-      state.votes
-      |> Map.values()
-      |> Enum.reduce(0, &(Enum.at(choices, &1).value + &2))
+    ccc = state.votes |> Map.values() |> Enum.map(&Enum.at(choices, &1).value)
 
-    average = if size > 0, do: sum / size, else: 0
+    dbg(ccc)
+
+    size = length(vote_values)
+
+    average = if size > 0, do: Enum.sum(vote_values) / size, else: 0
 
     results =
       state.votes

@@ -5,10 +5,11 @@
         <.simple_form
           for={@form}
           phx-change="validate"
-          phx-submit="save"
+          phx-submit="create"
           class="flex flex-col gap-2"
         >
           <.input field={@form[:title]} label="Name of the game" required />
+          <.input type="select" field={@form[:choices]} options={@choices} />
           <:actions>
             <.button>Create</.button>
           </:actions>

@@ -74,7 +74,8 @@ defmodule PokerplanWeb.GameLive do
         socket = %{
           assigns: %{current_user: %User{} = current_user, game_state: %GameState{} = game_state}
         }
-      ) do
+      )
+      when is_number(value) do
     next_game_state =
       GameServer.dispatch(
         {:vote, id: game_state.id, username: current_user.username, value: value}

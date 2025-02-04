@@ -1,4 +1,5 @@
 defmodule PokerplanWeb.LobbyLive do
+  alias Pokerplan.Game.VoteChoice
   use PokerplanWeb, :live_view
 
   alias Pokerplan.Auth.User
@@ -22,6 +23,7 @@ defmodule PokerplanWeb.LobbyLive do
      socket
      |> assign(:users, Presence.get_users_in_lobby())
      |> assign(:games, GameSupervisor.list_games())
+     |> assign(:choices, VoteChoice.choices())
      |> assign(:form, form)}
   end
 
@@ -52,11 +54,15 @@ defmodule PokerplanWeb.LobbyLive do
   end
 
   def handle_event(
-        "save",
-        %{"game_form" => %{"title" => title}},
+        "create",
+        %{"game_form" => %{"title" => title, "choices" => choices}},
         socket = %{assigns: %{current_user: %User{} = current_user}}
       ) do
-    case GameSupervisor.start_new_game(%{title: title, owner: current_user}) do
+    case GameSupervisor.start_new_game(%{
+           title: title,
+           owner: current_user,
+           choices: choices |> VoteChoice.cast_choices()
+         }) do
       {:ok, room_id} ->
         {:noreply, socket |> redirect(to: ~p"/games/#{room_id}")}
 
