@@ -1,4 +1,4 @@
-defmodule Pokerplan.Game.NewGameForm do
+defmodule Pokerplan.Poker.NewGameForm do
   use Ecto.Schema
   import Ecto.Changeset
 

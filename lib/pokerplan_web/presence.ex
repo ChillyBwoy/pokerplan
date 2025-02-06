@@ -13,7 +13,7 @@ defmodule PokerplanWeb.Presence do
   def track_user(topic, %User{} = user) do
     track(self(), get_topic(topic), user.username, %{
       user: user,
-      online_at: inspect(System.system_time(:millisecond))
+      online_at: :os.system_time(:millisecond)
     })
   end
 

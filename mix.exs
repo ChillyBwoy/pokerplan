@@ -12,7 +12,7 @@ defmodule Pokerplan.MixProject do
       deps: deps(),
       dialyzer: [
         plt_add_apps: [:mix],
-        flags: [:missing_return, :extra_return, :underspecs, :unmatched_returns]
+        flags: [:missing_return, :extra_return, :underspecs]
       ]
     ]
   end

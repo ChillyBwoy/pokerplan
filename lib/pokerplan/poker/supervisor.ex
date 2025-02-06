@@ -1,8 +1,8 @@
-defmodule Pokerplan.Game.Supervisor do
+defmodule Pokerplan.Poker.Supervisor do
   use DynamicSupervisor
 
-  alias Pokerplan.Game.State
-  alias Pokerplan.Game.Server, as: GameServer
+  alias Pokerplan.Poker.CardTable
+  alias Pokerplan.Poker.GameState
   alias Pokerplan.Auth.User
 
   def start_link(arg) do
@@ -11,14 +11,14 @@ defmodule Pokerplan.Game.Supervisor do
 
   def start_new_game(%{title: title, choices: choices, owner: %User{} = owner})
       when is_binary(title) and is_atom(choices) do
-    initial_state = State.new(%{title: title, choices: choices, owner: owner})
+    initial_state = GameState.new(%{title: title, choices: choices, owner: owner})
 
-    case DynamicSupervisor.start_child(__MODULE__, {GameServer, initial_state}) do
+    case DynamicSupervisor.start_child(__MODULE__, {CardTable, initial_state}) do
       {:ok, _pid} ->
         {:ok, initial_state.id}
 
       {:error, _reason} ->
-        {:error, "Could not start game server"}
+        {:error, "Could not create a poker table"}
     end
   end
 

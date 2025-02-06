@@ -8,8 +8,8 @@
           phx-submit="create"
           class="flex flex-col gap-2"
         >
-          <.input field={@form[:title]} label="Name of the game" required />
-          <.input type="select" field={@form[:choices]} options={@choices} />
+          <.input field={@form[:title]} label="Name of the game" required phx-debounce="blur" />
+          <.input type="select" field={@form[:choices]} options={@choices} phx-debounce="blur" />
           <:actions>
             <.button>Create</.button>
           </:actions>
