@@ -10,7 +10,6 @@ defmodule Pokerplan.Poker.GameState do
     :title,
     :owner,
     :show_results,
-    :allow_reset,
     :votes,
     :average,
     :results,
@@ -23,7 +22,6 @@ defmodule Pokerplan.Poker.GameState do
           title: String.t(),
           owner: User.t(),
           show_results: boolean(),
-          allow_reset: boolean(),
           votes: %{String.t() => String.t()},
           average: float() | nil,
           results: %{String.t() => integer()},
@@ -63,17 +61,17 @@ defmodule Pokerplan.Poker.GameState do
         do: Map.delete(state.votes, username),
         else: Map.put(state.votes, username, value)
 
-    %GameState{update(state) | votes: votes}
+    %GameState{state | votes: votes} |> update()
   end
 
   def reveal(%GameState{} = state) do
     dbg("[game #{state.id}] reveal")
-    %GameState{update(state) | show_results: true}
+    %GameState{state | show_results: true} |> update()
   end
 
   def remove_player(%GameState{} = state, username) do
     dbg("[game #{state.id}] player '#{username}' removed")
-    %GameState{update(state) | votes: Map.delete(state.votes, username)}
+    %GameState{state | votes: Map.delete(state.votes, username)} |> update()
   end
 
   def reset(%GameState{} = state) do
@@ -82,25 +80,37 @@ defmodule Pokerplan.Poker.GameState do
   end
 
   defp update(%GameState{} = state) do
-    choices = Vote.list({state.choices})
-
-    vote_values =
-      state.votes
-      |> Map.values()
-      |> Enum.filter(&(Enum.at(choices, &1).value != 0))
-      |> Enum.filter(&(not is_atom(&1)))
-
-    size = length(vote_values)
-
-    average = if size > 0, do: Enum.sum(vote_values) / size, else: 0
-
-    results =
-      state.votes
-      |> Map.values()
-      |> Enum.reduce(%{}, fn vote, acc ->
-        Map.update(acc, vote, 1, &(&1 + 1))
-      end)
+    average = votes_average(state)
+    results = votes_results(state)
 
     %GameState{state | average: average, results: results}
+  end
+
+  defp votes_results(%GameState{} = state) do
+    state.votes
+    |> Map.values()
+    |> Enum.reduce(%{}, fn vote, acc ->
+      Map.update(acc, vote, 1, &(&1 + 1))
+    end)
+  end
+
+  defp votes_average(%GameState{} = state) do
+    choices = Vote.list({state.choices})
+
+    votes =
+      state.votes
+      |> Map.values()
+      |> Enum.map(&Enum.at(choices, &1))
+
+    values =
+      votes
+      |> Enum.filter(fn
+        %Vote{} = vote -> not is_atom(vote.value)
+        _ -> false
+      end)
+      |> Enum.map(& &1.value)
+
+    size = length(values)
+    if size > 0, do: (Enum.sum(values) / size) |> Float.round(2), else: nil
   end
 end
