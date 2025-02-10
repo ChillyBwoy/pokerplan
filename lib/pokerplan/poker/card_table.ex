@@ -28,8 +28,8 @@ defmodule Pokerplan.Poker.CardTable do
     end
   end
 
-  def current(id) do
-    get_name(id) |> GenServer.call({:current})
+  def state(id) do
+    get_name(id) |> GenServer.call({:state})
   end
 
   def dispatch({:vote, id: id, username: username, value: value}) do
@@ -58,7 +58,7 @@ defmodule Pokerplan.Poker.CardTable do
   # Callbacks
 
   @impl true
-  def handle_call({:current}, _from, state) do
+  def handle_call({:state}, _from, state) do
     reply(state)
   end
 

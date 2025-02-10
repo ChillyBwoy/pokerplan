@@ -97,13 +97,10 @@ defmodule Pokerplan.Poker.GameState do
   defp votes_average(%GameState{} = state) do
     choices = Vote.list({state.choices})
 
-    votes =
+    values =
       state.votes
       |> Map.values()
       |> Enum.map(&Enum.at(choices, &1))
-
-    values =
-      votes
       |> Enum.filter(fn
         %Vote{} = vote -> not is_atom(vote.value)
         _ -> false

@@ -8,11 +8,9 @@ defmodule PokerplanWeb.GameLive do
 
   alias PokerplanWeb.Presence
 
-  @choices Vote.list({:fibonacci})
-
   @impl true
   def mount(_params, _session, socket) do
-    {:ok, socket |> assign(:choices, @choices)}
+    {:ok, socket}
   end
 
   @impl true
@@ -29,10 +27,14 @@ defmodule PokerplanWeb.GameLive do
         :ok = CardTable.subscribe({:game, game_id})
       end
 
+      game_state = CardTable.state(game_id)
+      choices = Vote.list({game_state.choices})
+
       {:noreply,
        socket
        |> assign(:users, Presence.get_users_in_game(game_id))
-       |> assign(:game_state, CardTable.current(game_id))}
+       |> assign(:choices, choices)
+       |> assign(:game_state, game_state)}
     else
       {:noreply, socket |> put_flash(:error, "Room not found") |> redirect(to: ~p"/")}
     end
