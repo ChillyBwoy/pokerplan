@@ -65,7 +65,7 @@ defmodule PokerplanWeb.LobbyLive do
       ) do
     case PokerSupervisor.start_new_game(%{
            title: title,
-           owner: current_user,
+           creator: current_user,
            choices: choices |> Vote.cast_choices()
          }) do
       {:ok, room_id} ->

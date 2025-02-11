@@ -36,7 +36,7 @@ defmodule Pokerplan.Poker.Vote do
     ]
   end
 
-  @spec list(atom()) :: []
+  @spec list(any()) :: []
   def list(_) do
     []
   end

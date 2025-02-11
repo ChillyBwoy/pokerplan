@@ -13,6 +13,7 @@ defmodule Pokerplan.Poker.CardTable do
 
   @impl true
   def init(%GameState{} = initial_state) do
+    # Process.flag(:trap_exit, true)
     :ok = PubSub.broadcast(Pokerplan.PubSub, get_topic({:list}), {:game_start, initial_state})
     {:ok, initial_state, @timeout}
   end
