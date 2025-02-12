@@ -1,7 +1,6 @@
 defmodule Pokerplan.Poker.Vote do
-  alias Pokerplan.Poker.Vote, as: Vote
+  alias Pokerplan.Poker.Vote
 
-  @derive Jason.Encoder
   @enforce_keys [:label, :value]
   defstruct [:label, :value]
 
@@ -10,16 +9,8 @@ defmodule Pokerplan.Poker.Vote do
           value: term()
         }
 
-  @spec cast_choices(binary()) :: :fibonacci | nil
-  def cast_choices(input) when is_binary(input) do
-    case input do
-      "fibonacci" -> :fibonacci
-      _ -> nil
-    end
-  end
-
-  @spec list(atom()) :: [Vote.t()]
-  def list({:fibonacci}) do
+  @spec get_list(String.t()) :: [Vote.t()]
+  def get_list("fibonacci") do
     [
       %Vote{value: :unsure, label: "?"},
       %Vote{value: 1, label: "1"},
@@ -36,8 +27,8 @@ defmodule Pokerplan.Poker.Vote do
     ]
   end
 
-  @spec list(any()) :: []
-  def list(_) do
+  @spec get_list(any()) :: []
+  def get_list(_) do
     []
   end
 
@@ -51,6 +42,6 @@ defmodule Pokerplan.Poker.Vote do
   def unsure?(%Vote{} = vote_choice), do: vote_choice.value == :unsure
 
   def choices do
-    [Fibonacci: :fibonacci]
+    [Fibonacci: "fibonacci"]
   end
 end

@@ -1,6 +1,7 @@
 defmodule Pokerplan.Poker.Supervisor do
   use DynamicSupervisor
 
+  require Logger
   alias Pokerplan.Poker.CardTable
   alias Pokerplan.Poker.GameState
   alias Pokerplan.Auth.User
@@ -10,14 +11,14 @@ defmodule Pokerplan.Poker.Supervisor do
   end
 
   def start_new_game(%{title: title, choices: choices, creator: %User{} = creator})
-      when is_binary(title) and is_atom(choices) do
-    initial_state = GameState.new(%{title: title, choices: choices, creator: creator})
-
-    case DynamicSupervisor.start_child(__MODULE__, {CardTable, initial_state}) do
-      {:ok, _pid} ->
-        {:ok, initial_state.id}
-
-      {:error, _reason} ->
+      when is_binary(title) and is_binary(choices) do
+    with {:ok, initial_state} <-
+           GameState.create(%{title: title, choices: choices, creator: creator}),
+         {:ok, pid} <- DynamicSupervisor.start_child(__MODULE__, {CardTable, initial_state}) do
+      {:ok, pid, initial_state}
+    else
+      {:error, reason} ->
+        Logger.error(reason)
         {:error, "Could not create a poker table"}
     end
   end

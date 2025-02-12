@@ -1,55 +1,48 @@
 defmodule Pokerplan.Poker.GameState do
   require Logger
-  alias Pokerplan.Auth.User
   alias Pokerplan.Poker.GameState, as: GameState
   alias Pokerplan.Poker.Vote
+  alias Pokerplan.Auth.User
 
-  @derive Jason.Encoder
-  @enforce_keys [:id, :title, :creator, :owner, :choices, :votes, :results, :created_at]
-  defstruct [
-    :id,
-    :title,
-    :creator,
-    :owner,
-    :show_results,
-    :votes,
-    :average,
-    :results,
-    :choices,
-    :created_at
-  ]
+  use Ecto.Schema
+  import Ecto.Changeset
 
-  @type t :: %__MODULE__{
-          id: String.t(),
-          title: String.t(),
-          creator: User.t(),
-          owner: User.t(),
-          show_results: boolean(),
-          votes: %{String.t() => String.t()},
-          average: float() | nil,
-          results: %{String.t() => integer()},
-          choices: atom(),
-          created_at: DateTime.t()
-        }
+  @primary_key false
+  embedded_schema do
+    field :id, :string
+    field :title, :string
+    field :choices, :string
+    field :votes, {:map, :integer}, default: %{}
+    field :results, {:map, :integer}, default: %{}
+    field :show_results, :boolean, default: false
+    field :average, :float, default: nil
+    field :created_at, :utc_datetime
+    embeds_one :creator, User, on_replace: :update
+    embeds_one :owner, User, on_replace: :update
+  end
 
-  def(
-    new(%{title: title, choices: choices, creator: %User{} = creator})
-    when is_binary(title) and is_atom(choices)
-  ) do
-    id = Ecto.UUID.generate()
+  def changeset(%GameState{} = state, attrs) do
+    state
+    |> cast(attrs, [:id, :title, :choices, :votes, :results, :created_at])
+    |> cast_embed(:creator, with: &User.changeset/2)
+    |> cast_embed(:owner, with: &User.changeset/2)
+    |> validate_required([:id, :title, :choices, :votes, :results, :created_at, :creator, :owner])
+  end
 
-    Logger.debug("New Game: #{id}")
-
-    %GameState{
-      id: id,
+  def create(%{title: title, creator: %User{} = creator, choices: choices})
+      when is_binary(title) and is_binary(choices) do
+    %GameState{}
+    |> changeset(%{
+      id: Ecto.UUID.generate(),
       title: title,
-      creator: creator,
-      owner: creator,
       choices: choices,
       votes: %{},
       results: %{},
-      created_at: DateTime.utc_now()
-    }
+      created_at: DateTime.utc_now(),
+      creator: Map.from_struct(creator),
+      owner: Map.from_struct(creator)
+    })
+    |> apply_action(:create)
   end
 
   def voted?(%GameState{} = state, username) when is_binary(username) do
@@ -99,7 +92,7 @@ defmodule Pokerplan.Poker.GameState do
   end
 
   defp votes_average(%GameState{} = state) do
-    choices = Vote.list({state.choices})
+    choices = Vote.get_list(state.choices)
 
     values =
       state.votes

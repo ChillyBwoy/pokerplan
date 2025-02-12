@@ -28,7 +28,7 @@ defmodule PokerplanWeb.GameLive do
       end
 
       game_state = CardTable.state(game_id)
-      choices = Vote.list({game_state.choices})
+      choices = Vote.get_list(game_state.choices)
 
       {:noreply,
        socket

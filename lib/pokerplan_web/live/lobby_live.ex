@@ -63,13 +63,9 @@ defmodule PokerplanWeb.LobbyLive do
         %{"game_form" => %{"title" => title, "choices" => choices}},
         socket = %{assigns: %{current_user: %User{} = current_user}}
       ) do
-    case PokerSupervisor.start_new_game(%{
-           title: title,
-           creator: current_user,
-           choices: choices |> Vote.cast_choices()
-         }) do
-      {:ok, room_id} ->
-        {:noreply, socket |> redirect(to: ~p"/games/#{room_id}")}
+    case PokerSupervisor.start_new_game(%{title: title, creator: current_user, choices: choices}) do
+      {:ok, _pid, %GameState{} = state} ->
+        {:noreply, socket |> redirect(to: ~p"/games/#{state.id}")}
 
       {:error, reason} ->
         {:noreply, socket |> put_flash(:error, reason)}
