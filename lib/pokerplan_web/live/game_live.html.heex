@@ -1,16 +1,21 @@
-<.layout class="grid grid-rows-[auto_100px_1fr_auto]">
-  <h1 class="text-center">{@game_state.title}</h1>
-
-  <div class="flex justify-center items-center">
-    <%= if @game_state.owner.username == @current_user.username do %>
-      <%= if @game_state.show_results do %>
-        <.button phx-click="reset">Reset</.button>
-      <% else %>
-        <%= if map_size(@game_state.votes) > 0 do %>
-          <.button phx-click="reveal" class="bg-blue-400">Reveal cards</.button>
+<.layout class="grid grid-rows-[auto_1fr_auto]">
+  <div class="grid grid-cols-2">
+    <h1>{@game_state.title}</h1>
+    <div class="flex justify-end items-center">
+      <%= if @game_state.owner.username == @current_user.username do %>
+        <%= if @game_state.show_results do %>
+          <.button phx-click="reset">Reset</.button>
+        <% else %>
+          <.button
+            phx-click="reveal"
+            class="bg-primary"
+            disabled={map_size(@game_state.votes) == 0}
+          >
+            Reveal cards
+          </.button>
         <% end %>
       <% end %>
-    <% end %>
+    </div>
   </div>
 
   <div class="flex flex-wrap items-center justify-center box-border py-8">
@@ -23,7 +28,7 @@
         </.user_avatar>
         <.playing_card
           size="l"
-          flipped={@game_state.votes[username]}
+          flipped={@game_state.votes[username] != nil}
           state={if @game_state.show_results, do: "done", else: "idle"}
         >
           <%= if @game_state.show_results && @game_state.votes[username] do %>
@@ -36,10 +41,13 @@
 
   <%= if @game_state.show_results do %>
     <div class="flex gap-8 justify-center">
-      <div class="flex flex-col gap-4 justify-center items-center">
-        <h5 class="text-2xl">Average</h5>
-        <h3 class="text-3xl font-bold">{@game_state.average}</h3>
-      </div>
+      <%= if @game_state.average != nil do %>
+        <div class="flex flex-col gap-4 justify-center items-center">
+          <h5 class="text-2xl">Average</h5>
+          <h3 class="text-3xl font-bold">{@game_state.average}</h3>
+        </div>
+      <% end %>
+
       <div class="flex gap-4">
         <%= for {vote, amount} <- @game_state.results do %>
           <div class="flex flex-col gap-2">

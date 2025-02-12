@@ -1,18 +1,19 @@
-defmodule Pokerplan.Game.Server do
+defmodule Pokerplan.Poker.CardTable do
   use GenServer, restart: :transient
 
   alias Phoenix.PubSub
-  alias Pokerplan.Game.State
+  alias Pokerplan.Poker.GameState
 
   # 30 minutes
   @timeout 1_000 * 60 * 30
 
-  def start_link(%State{} = initial_state) do
+  def start_link(%GameState{} = initial_state) do
     GenServer.start_link(__MODULE__, initial_state, name: get_name(initial_state.id))
   end
 
   @impl true
-  def init(%State{} = initial_state) do
+  def init(%GameState{} = initial_state) do
+    # Process.flag(:trap_exit, true)
     :ok = PubSub.broadcast(Pokerplan.PubSub, get_topic({:list}), {:game_start, initial_state})
     {:ok, initial_state, @timeout}
   end
@@ -28,8 +29,8 @@ defmodule Pokerplan.Game.Server do
     end
   end
 
-  def current(id) do
-    get_name(id) |> GenServer.call({:current})
+  def state(id) do
+    get_name(id) |> GenServer.call({:state})
   end
 
   def dispatch({:vote, id: id, username: username, value: value}) do
@@ -58,28 +59,28 @@ defmodule Pokerplan.Game.Server do
   # Callbacks
 
   @impl true
-  def handle_call({:current}, _from, state) do
+  def handle_call({:state}, _from, state) do
     reply(state)
   end
 
   @impl true
-  def handle_call({:vote, username, value}, _from, %State{} = state) do
-    State.vote(state, username, value) |> reply({:notify})
+  def handle_call({:vote, username, value}, _from, %GameState{} = state) do
+    GameState.vote(state, username, value) |> reply({:notify})
   end
 
   @impl true
-  def handle_call({:reveal}, _from, %State{} = state) do
-    State.show(state) |> reply({:notify})
+  def handle_call({:reveal}, _from, %GameState{} = state) do
+    GameState.reveal(state) |> reply({:notify})
   end
 
   @impl true
-  def handle_call({:reset}, _from, %State{} = state) do
-    State.reset(state) |> reply({:notify})
+  def handle_call({:reset}, _from, %GameState{} = state) do
+    GameState.reset(state) |> reply({:notify})
   end
 
   @impl true
-  def handle_call({:player_leave, username}, _from, %State{} = state) do
-    State.remove_player(state, username) |> reply({:notify})
+  def handle_call({:player_leave, username}, _from, %GameState{} = state) do
+    GameState.remove_player(state, username) |> reply({:notify})
   end
 
   @impl true
@@ -90,11 +91,11 @@ defmodule Pokerplan.Game.Server do
 
   # Private funcs
 
-  defp reply(%State{} = state) do
+  defp reply(%GameState{} = state) do
     {:reply, state, state, @timeout}
   end
 
-  defp reply(%State{} = state, {:notify}) do
+  defp reply(%GameState{} = state, {:notify}) do
     :ok = PubSub.broadcast(Pokerplan.PubSub, get_topic({:game, state.id}), {:game_state, state})
     {:reply, state, state, @timeout}
   end

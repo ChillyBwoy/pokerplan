@@ -1,18 +1,16 @@
 defmodule PokerplanWeb.GameLive do
   use PokerplanWeb, :live_view
 
-  alias Pokerplan.Game.Server, as: GameServer
-  alias Pokerplan.Game.State, as: GameState
-  alias Pokerplan.Game.VoteChoice, as: VoteChoice
+  alias Pokerplan.Poker.CardTable
+  alias Pokerplan.Poker.GameState
+  alias Pokerplan.Poker.Vote
   alias Pokerplan.Auth.User
 
   alias PokerplanWeb.Presence
 
-  @choices VoteChoice.list({:fibonacci})
-
   @impl true
   def mount(_params, _session, socket) do
-    {:ok, socket |> assign(:choices, @choices)}
+    {:ok, socket}
   end
 
   @impl true
@@ -21,18 +19,22 @@ defmodule PokerplanWeb.GameLive do
         _uri,
         socket = %{assigns: %{current_user: %User{} = current_user}}
       ) do
-    if GameServer.active?(game_id) do
+    if CardTable.active?(game_id) do
       if connected?(socket) do
         {:ok, _} = Presence.track_user({:game, game_id}, current_user)
         :ok = Presence.subscribe({:game, game_id})
-        :ok = GameServer.subscribe({:list})
-        :ok = GameServer.subscribe({:game, game_id})
+        :ok = CardTable.subscribe({:list})
+        :ok = CardTable.subscribe({:game, game_id})
       end
+
+      game_state = CardTable.state(game_id)
+      choices = Vote.get_list(game_state.choices)
 
       {:noreply,
        socket
        |> assign(:users, Presence.get_users_in_game(game_id))
-       |> assign(:game_state, GameServer.current(game_id))}
+       |> assign(:choices, choices)
+       |> assign(:game_state, game_state)}
     else
       {:noreply, socket |> put_flash(:error, "Room not found") |> redirect(to: ~p"/")}
     end
@@ -72,11 +74,15 @@ defmodule PokerplanWeb.GameLive do
         "vote",
         %{"value" => value},
         socket = %{
-          assigns: %{current_user: %User{} = current_user, game_state: %GameState{} = game_state}
+          assigns: %{
+            current_user: %User{} = current_user,
+            game_state: %GameState{} = game_state
+          }
         }
-      ) do
+      )
+      when is_number(value) do
     next_game_state =
-      GameServer.dispatch(
+      CardTable.dispatch(
         {:vote, id: game_state.id, username: current_user.username, value: value}
       )
 
@@ -88,7 +94,7 @@ defmodule PokerplanWeb.GameLive do
         _params,
         socket = %{assigns: %{game_state: %GameState{} = game_state}}
       ) do
-    next_game_state = GameServer.dispatch({:reset, id: game_state.id})
+    next_game_state = CardTable.dispatch({:reset, id: game_state.id})
     {:noreply, socket |> assign(:game_state, next_game_state)}
   end
 
@@ -97,7 +103,7 @@ defmodule PokerplanWeb.GameLive do
         _params,
         socket = %{assigns: %{game_state: %GameState{} = game_state}}
       ) do
-    next_game_state = GameServer.dispatch({:reveal, id: game_state.id})
+    next_game_state = CardTable.dispatch({:reveal, id: game_state.id})
     {:noreply, socket |> assign(:game_state, next_game_state)}
   end
 
@@ -105,15 +111,18 @@ defmodule PokerplanWeb.GameLive do
   def terminate(
         _reason,
         socket = %{
-          assigns: %{current_user: %User{} = current_user, game_state: %GameState{} = game_state}
+          assigns: %{
+            current_user: %User{} = current_user,
+            game_state: %GameState{} = game_state
+          }
         }
       ) do
     if connected?(socket) do
       Presence.untrack_user({:game, game_state.id}, current_user.username)
     end
 
-    if GameServer.active?(game_state.id) do
-      GameServer.dispatch({:player_leave, id: game_state.id, username: current_user.username})
+    if CardTable.active?(game_state.id) do
+      CardTable.dispatch({:player_leave, id: game_state.id, username: current_user.username})
     end
 
     Presence.unsubscribe({:game, game_state.id})

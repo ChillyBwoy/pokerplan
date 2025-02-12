@@ -13,7 +13,7 @@ defmodule Pokerplan.Application do
       {Ecto.Migrator,
        repos: Application.fetch_env!(:pokerplan, :ecto_repos), skip: skip_migrations?()},
       {DNSCluster, query: Application.get_env(:pokerplan, :dns_cluster_query) || :ignore},
-      Pokerplan.Game.Supervisor,
+      Pokerplan.Poker.Supervisor,
       {Registry, keys: :unique, name: Pokerplan.Registry},
       {Phoenix.PubSub, name: Pokerplan.PubSub},
       # Start the Finch HTTP client for sending emails

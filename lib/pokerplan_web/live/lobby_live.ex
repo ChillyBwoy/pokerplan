@@ -2,16 +2,18 @@ defmodule PokerplanWeb.LobbyLive do
   use PokerplanWeb, :live_view
 
   alias Pokerplan.Auth.User
-  alias Pokerplan.Game.Server, as: GameServer
-  alias Pokerplan.Game.State, as: GameState
-  alias Pokerplan.Game.Supervisor, as: GameSupervisor
-  alias Pokerplan.Game.NewGameForm
+  alias Pokerplan.Poker.CardTable
+  alias Pokerplan.Poker.GameState
+  alias Pokerplan.Poker.Vote
+  alias Pokerplan.Poker.Supervisor, as: PokerSupervisor
+  alias Pokerplan.Poker.NewGameForm
   alias PokerplanWeb.Presence
 
   def mount(_params, _session, socket = %{assigns: %{current_user: %User{} = current_user}}) do
-    {:ok, _} = Presence.track_user({:lobby}, current_user)
+    # We don't care if the presence tracking fails
+    Presence.track_user({:lobby}, current_user)
     :ok = Presence.subscribe({:lobby})
-    :ok = GameServer.subscribe({:list})
+    :ok = CardTable.subscribe({:list})
 
     form =
       %NewGameForm{}
@@ -21,8 +23,13 @@ defmodule PokerplanWeb.LobbyLive do
     {:ok,
      socket
      |> assign(:users, Presence.get_users_in_lobby())
-     |> assign(:games, GameSupervisor.list_games())
+     |> assign(:games, PokerSupervisor.list_games())
+     |> assign(:choices, Vote.choices())
      |> assign(:form, form)}
+  end
+
+  def handle_params(_params, _uri, socket) do
+    {:noreply, socket}
   end
 
   def handle_info(
@@ -34,11 +41,11 @@ defmodule PokerplanWeb.LobbyLive do
   end
 
   def handle_info({:game_start, %GameState{}}, socket) do
-    {:noreply, assign(socket, :games, GameSupervisor.list_games())}
+    {:noreply, assign(socket, :games, PokerSupervisor.list_games())}
   end
 
   def handle_info({:game_end, %GameState{}}, socket) do
-    {:noreply, assign(socket, :games, GameSupervisor.list_games())}
+    {:noreply, assign(socket, :games, PokerSupervisor.list_games())}
   end
 
   def handle_event("validate", %{"game_form" => params}, socket) do
@@ -52,13 +59,13 @@ defmodule PokerplanWeb.LobbyLive do
   end
 
   def handle_event(
-        "save",
-        %{"game_form" => %{"title" => title}},
+        "create",
+        %{"game_form" => %{"title" => title, "choices" => choices}},
         socket = %{assigns: %{current_user: %User{} = current_user}}
       ) do
-    case GameSupervisor.start_new_game(%{title: title, owner: current_user}) do
-      {:ok, room_id} ->
-        {:noreply, socket |> redirect(to: ~p"/games/#{room_id}")}
+    case PokerSupervisor.start_new_game(%{title: title, creator: current_user, choices: choices}) do
+      {:ok, _pid, %GameState{} = state} ->
+        {:noreply, socket |> redirect(to: ~p"/games/#{state.id}")}
 
       {:error, reason} ->
         {:noreply, socket |> put_flash(:error, reason)}

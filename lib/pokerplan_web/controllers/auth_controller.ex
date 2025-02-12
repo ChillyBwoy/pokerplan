@@ -6,10 +6,6 @@ defmodule PokerplanWeb.AuthController do
 
   plug Ueberauth
 
-  defp user_attrs_from_oauth(%{info: %{nickname: nickname, image: image}, provider: :github}) do
-    {:ok, %User{username: nickname, avatar_url: image}}
-  end
-
   def callback(conn = %{assigns: %{ueberauth_failure: _}}, _params) do
     conn
     |> put_flash(:error, "Failed to authenticate.")
@@ -34,5 +30,15 @@ defmodule PokerplanWeb.AuthController do
     conn
     |> configure_session(drop: true)
     |> redirect(to: "/")
+  end
+
+  defp user_attrs_from_oauth(%{info: %{nickname: nickname, image: image}, provider: :github}) do
+    case %User{} |> User.create(%{username: nickname, avatar_url: image}) do
+      {:ok, user} ->
+        {:ok, user}
+
+      {:error, changeset} ->
+        {:error, "Failed to create user: #{inspect(changeset.errors)}"}
+    end
   end
 end
